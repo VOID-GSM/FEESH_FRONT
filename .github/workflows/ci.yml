@@ -53,4 +53,4 @@ jobs:
           title: '❗️ 실패 ❗️'
           description: '빌드 실패'
           color: 16711680
-          username: 'FEESH-FRONT-bot'
+          username: 'FEESH-FRONT-bot' 
