@@ -47,6 +47,11 @@ function Signup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!password.trim() || !confirmPassword.trim()) {
+      alert("비밀번호를 입력해주세요.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       alert("비밀번호가 일치하지 않습니다.");
