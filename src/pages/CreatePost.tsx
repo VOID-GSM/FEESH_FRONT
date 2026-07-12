@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Logo from "../components/Logo";
+import Header from "../components/Header";
 
 function CreatePost() {
   const [title, setTitle] = useState("");
@@ -7,6 +7,7 @@ function CreatePost() {
   const [category, setCategory] = useState("food");
   const [etcCategory, setEtcCategory] = useState("");
   const [loading, setLoading] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   const categories = [
     { id: "food", label: "음식" },
@@ -15,14 +16,14 @@ function CreatePost() {
     { id: "culture", label: "문화/여가" },
     { id: "etc", label: "기타" },
   ];
-const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = Array.from(e.target.files ?? []);
-  if (files.length > 5) {
-    alert("사진은 최대 5장까지 첨부할 수 있습니다.");
-    return;
-  }
-  setPhotos(files);
-};
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 5) {
+      alert("사진은 최대 5장까지 첨부할 수 있습니다.");
+      return;
+    }
+    setPhotos(files);
+  };
   const handleSubmit = () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
@@ -40,33 +41,7 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen pb-stack-lg">
-      {/* Header */}
-
-      <header className="bg-surface-bright sticky top-0 z-50 shadow-sm">
-        <nav className="flex justify-between items-center w-full px-margin-mobile md:px-margin-tablet py-stack-sm max-w-[1024px] mx-auto">
-          <div className="flex items-center gap-gutter">
-            <Logo size="sm" />
-
-            <span className="font-headline-xl text-headline-xl font-bold text-primary">
-              FEESH
-            </span>
-          </div>
-
-          <div className="flex items-center gap-stack-md">
-            <button className="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
-              notifications
-            </button>
-
-            <div className="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2tozAdh7Q0TiZRuHJ3xXnEFR_ebkI3R2C2i9WQIHnjpr-KeSmqnZst9GNagxIXF3TT1fRPMzp8nWl0DlvVXR-WMv8hYiCfdwcWgYhDU5JOJSdD9uSx0nWfaKCD6tuYU-4AXn55BgpPleVetiNJ_gZ13PbFWfVrz1r3fAdHDzzEobB3HwYiVIFLVqqG0f8gdE8uzrkNNLzsR8goq2LhYDeVvK_leZBWnfFZEV25ENfqMQkpZzBh3an6Q"
-                alt="profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       <main className="max-w-[768px] mx-auto px-margin-mobile md:px-margin-tablet mt-stack-lg">
         <div className="flex items-center gap-stack-sm mb-stack-md">
@@ -182,7 +157,13 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 사진 첨부 (최대 5장)
               </span>
 
-              <input type="file" accept="image/*" multiple className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
             </label>
 
             {/* 버튼 */}
