@@ -1,7 +1,7 @@
-//로그인 페이지
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import Logo from "../components/Logo";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,11 +13,7 @@ function Login() {
       {/* Header */}
       <header className="w-full h-16 flex items-center px-8">
         <div className="flex items-center gap-2">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxif62lTLsOV1cSAQssslSmGyaNeCAjI1iF4wLFAxGgpJEimdTKEIqMOiYNlZhp9RGKaB2_LU-wnCsUPPiA-tw0hxtkLJjiPZO-GpBmayDs4doeKg5YM568v_NbWW3kCwfvw3ZRJY3X0rA7XfMTnloxbfhuFpD3eE_tlDYZskw4D3oKQnThdsl1I3bynOpSHU8_5nOu122rQs5RtA_O_tDU_x3yGMc9kFJhGxIG1xvepg8lnyIChyicjSk9hSmu8lCAiA"
-            alt="FEESH"
-            className="h-10"
-          />
+          <Logo />
 
           <h1 className="text-2xl font-bold text-blue-700">FEESH</h1>
         </div>
@@ -28,11 +24,7 @@ function Login() {
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7PYBntYn_HRkqX6LLSceEw75qDI8qf_8ENX1jxRh6nfOcodpOZ8Tj0wwp0Qd7GY0Hy8PjjCGh2yUUac_eB3Iaeka8fFi4aZPZMKbUVIOmTdPIyGnQs1d2SH9SLPoAuxtm3LTP8dn7lrPxNKQwmwhTopEBYr4-UtCF6B6glHaRKL31IJiPAzZ9MnrEcURmvxGBcq-htfD7y0hMHtv-5_dM-9QT4ebqf3is_3Yu005Fzm0uXM7-QyOf6tY0h9O8q6Thvws"
-              alt="FEESH"
-              className="h-16 mb-4"
-            />
+            <Logo size="lg" />
 
             <h2 className="text-3xl font-bold text-blue-700">FEESH</h2>
           </div>

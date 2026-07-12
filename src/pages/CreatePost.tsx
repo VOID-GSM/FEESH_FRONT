@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Logo from "../components/Logo";
 
 function CreatePost() {
   const [title, setTitle] = useState("");
@@ -44,11 +45,7 @@ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <header className="bg-surface-bright sticky top-0 z-50 shadow-sm">
         <nav className="flex justify-between items-center w-full px-margin-mobile md:px-margin-tablet py-stack-sm max-w-[1024px] mx-auto">
           <div className="flex items-center gap-gutter">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpU5sdBTrbDO2tLTVnZu_PXSbVLNbtxb3ttbamVn0ykl_vK4V1K2_RKpdkCmzx9fgg_KuIhRyhdYzmuRQvsyeSRl-uBFOkqPriRL5XTkNn0KPGHCyom8BMmI_dJkXz2704tOZUrZgPbuhjOoOsN2crKqROPaWb6m8MWL-246mYNen9C5iCI8Do4-ChM17b_oMK1JaTtwQaxQNLeRE-7OoRIMpCeni5GZKFb8zDnaiI9fOC0qmUe0HHEHtEYHi7tUmp1Zo"
-              alt="FEESH Logo"
-              className="h-8 w-auto"
-            />
+            <Logo size="sm" />
 
             <span className="font-headline-xl text-headline-xl font-bold text-primary">
               FEESH

@@ -1,6 +1,7 @@
 //회원가입 페이지
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import Logo from "../components/Logo";
 
 function Signup() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -67,13 +68,9 @@ function Signup() {
         <div className="bg-white border rounded-xl p-10 shadow-lg">
           {/* Logo */}
           <div className="flex flex-col items-center mb-10">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8F1UnfUespXiWuS3Iq8OA0C8iGDYx2Z2uDMAqAMlXXpGzWXp3Ph5TVqLOZZ3ZCVhQDzhAvEuSMAp4xOBCj4f9D4OflaooII7dGwR6cxmvLVHnT8YNFLE53IrYBlyT16w5Vm8wb_HlN6e7MwRHKyqlepkQKwEC3hMxS4DN-bBG1hrNAOWdpXkzRnZ-pFpEaV5CpQ0_q_WJPyrpjPARPDTkJHdg2KlF9eGRESR7ZovqMpB2Zl2TGhM-TGTuwIMZeLL43Z4"
-              alt="FEESH Logo"
-              className="w-20 h-20 object-contain mb-4"
-            />
+            <Logo size="lg" />
 
-            <h1 className="text-3xl font-bold text-blue-700">FEESH</h1>
+            <h1 className="mt-4 text-3xl font-bold text-blue-700">FEESH</h1>
 
             <p className="mt-2 text-gray-500 text-center text-sm whitespace-nowrap">
               함께 소비를 공유하는 소셜 플랫폼 FEESH에 오신 것을 환영합니다.
