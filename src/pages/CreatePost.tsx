@@ -7,7 +7,6 @@ function CreatePost() {
   const [category, setCategory] = useState("food");
   const [etcCategory, setEtcCategory] = useState("");
   const [loading, setLoading] = useState(false);
-  const [photos, setPhotos] = useState<File[]>([]);
 
   const categories = [
     { id: "food", label: "음식" },
