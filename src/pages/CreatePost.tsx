@@ -14,7 +14,14 @@ function CreatePost() {
     { id: "culture", label: "문화/여가" },
     { id: "etc", label: "기타" },
   ];
-
+const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = Array.from(e.target.files ?? []);
+  if (files.length > 5) {
+    alert("사진은 최대 5장까지 첨부할 수 있습니다.");
+    return;
+  }
+  setPhotos(files);
+};
   const handleSubmit = () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
