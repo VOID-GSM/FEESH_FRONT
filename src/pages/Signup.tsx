@@ -1,12 +1,8 @@
-//회원가입 페이지
 import { useEffect, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import Logo from "../components/Logo";
+import PasswordInput from "../components/PasswordInput";
 
 function Signup() {
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmVisible, setConfirmVisible] = useState(false);
-
   const [timer, setTimer] = useState(180);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
@@ -48,7 +44,7 @@ function Signup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!password.trim() || !confirmPassword.trim()) {
       alert("비밀번호를 입력해주세요.");
       return;
@@ -129,46 +125,22 @@ function Signup() {
             <div>
               <label className="block mb-2 font-medium">비밀번호</label>
 
-              <div className="relative">
-                <input
-                  type={passwordVisible ? "text" : "password"}
-                  placeholder="8-16자리 영문, 숫자 조합"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-3 pr-12"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setPasswordVisible(!passwordVisible)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {passwordVisible ? <Eye size={22} /> : <EyeOff size={22} />}
-                </button>
-              </div>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="8-16자리 영문, 숫자 조합"
+              />
             </div>
 
             {/* 비밀번호 확인 */}
             <div>
               <label className="block mb-2 font-medium">비밀번호 확인</label>
 
-              <div className="relative">
-                <input
-                  type={confirmVisible ? "text" : "password"}
-                  placeholder="비밀번호를 한번 더 입력해주세요"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-3 pr-12"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setConfirmVisible(!confirmVisible)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {confirmVisible ? <Eye size={22} /> : <EyeOff size={22} />}
-                </button>
-              </div>
+              <PasswordInput
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="비밀번호를 한번 더 입력해주세요"
+              />
             </div>
 
             {/* 회원가입 버튼 */}
