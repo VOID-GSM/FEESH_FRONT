@@ -24,6 +24,20 @@ function CreatePost() {
       return;
     }
 
+    if (category === "etc" && !etcCategory.trim()) {
+      alert("카테고리를 입력해주세요.");
+      return;
+    }
+
+    const finalCategory = category === "etc" ? etcCategory.trim() : category;
+
+    console.log("등록 데이터:", {
+      title,
+      content,
+      category: finalCategory,
+      photos,
+    });
+
     setLoading(true);
 
     setTimeout(() => {
