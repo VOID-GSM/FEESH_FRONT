@@ -8,6 +8,7 @@ function CreatePost() {
   const [etcCategory, setEtcCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [, setPhotos] = useState<File[]>([]);
+
   const categories = [
     { id: "food", label: "음식" },
     { id: "shopping", label: "의류/쇼핑" },
@@ -15,14 +16,18 @@ function CreatePost() {
     { id: "culture", label: "문화/여가" },
     { id: "etc", label: "기타" },
   ];
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+
     if (files.length > 5) {
       alert("사진은 최대 5장까지 첨부할 수 있습니다.");
       return;
     }
+
     setPhotos(files);
   };
+
   const handleSubmit = () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
@@ -59,7 +64,6 @@ function CreatePost() {
         <div className="form-card bg-surface-container-lowest p-stack-lg rounded-xl">
           <div className="space-y-stack-lg">
             {/* 제목 */}
-
             <div className="space-y-base">
               <label
                 htmlFor="title"
@@ -79,7 +83,6 @@ function CreatePost() {
             </div>
 
             {/* 카테고리 */}
-
             <div className="space-y-base">
               <label className="font-label-lg text-label-lg text-on-surface-variant">
                 카테고리
@@ -103,8 +106,8 @@ function CreatePost() {
                 ))}
               </div>
             </div>
-            {/* 기타 카테고리 */}
 
+            {/* 기타 카테고리 */}
             {category === "etc" && (
               <div className="space-y-base">
                 <label
@@ -126,7 +129,6 @@ function CreatePost() {
             )}
 
             {/* 내용 */}
-
             <div className="space-y-base">
               <label
                 htmlFor="content"
@@ -146,7 +148,6 @@ function CreatePost() {
             </div>
 
             {/* 사진 첨부 */}
-
             <label className="flex items-center gap-stack-sm p-4 border-2 border-dashed border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container hover:border-primary transition-colors group">
               <span className="material-symbols-outlined text-outline-variant group-hover:text-primary">
                 add_a_photo
@@ -166,7 +167,6 @@ function CreatePost() {
             </label>
 
             {/* 버튼 */}
-
             <div className="flex flex-col md:flex-row gap-stack-sm pt-stack-md border-t border-surface-variant">
               <button
                 type="button"
