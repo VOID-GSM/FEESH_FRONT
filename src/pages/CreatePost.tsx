@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Header from "../components/Header";
+import PhotoUpload from "../components/PhotoUpload";
 
 function CreatePost() {
   const [title, setTitle] = useState("");
@@ -7,7 +8,7 @@ function CreatePost() {
   const [category, setCategory] = useState("food");
   const [etcCategory, setEtcCategory] = useState("");
   const [loading, setLoading] = useState(false);
-  const [, setPhotos] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   const categories = [
     { id: "food", label: "음식" },
@@ -16,17 +17,6 @@ function CreatePost() {
     { id: "culture", label: "문화/여가" },
     { id: "etc", label: "기타" },
   ];
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-
-    if (files.length > 5) {
-      alert("사진은 최대 5장까지 첨부할 수 있습니다.");
-      return;
-    }
-
-    setPhotos(files);
-  };
 
   const handleSubmit = () => {
     if (!title.trim()) {
@@ -78,7 +68,7 @@ function CreatePost() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="게시물 제목을 입력해주세요"
-                className="w-full px-4 py-3 bg-surface-container-low border-transparent rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all-200 font-body-lg text-body-lg text-on-surface"
+                className="w-full px-4 py-3 bg-surface-container-low rounded-lg outline-none"
               />
             </div>
 
@@ -94,11 +84,11 @@ function CreatePost() {
                     key={item.id}
                     type="button"
                     onClick={() => setCategory(item.id)}
-                    className={`px-4 py-2 rounded-full border font-label-lg text-label-lg transition-all-200
+                    className={`px-4 py-2 rounded-full border
                     ${
                       category === item.id
                         ? "bg-primary text-on-primary border-primary"
-                        : "border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary"
+                        : "border-outline-variant"
                     }`}
                   >
                     {item.label}
@@ -123,7 +113,7 @@ function CreatePost() {
                   value={etcCategory}
                   onChange={(e) => setEtcCategory(e.target.value)}
                   placeholder="원하는 카테고리를 입력하세요"
-                  className="w-full px-4 py-3 bg-surface-container-low border-transparent rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all-200 font-body-lg text-body-lg text-on-surface"
+                  className="w-full px-4 py-3 bg-surface-container-low rounded-lg outline-none"
                 />
               </div>
             )}
@@ -142,36 +132,20 @@ function CreatePost() {
                 rows={10}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="내용을 작성해주세요. 자유로운 의견 교환은 커뮤니티의 힘이 됩니다."
-                className="w-full px-4 py-3 bg-surface-container-low border-transparent rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all-200 font-body-lg text-body-lg text-on-surface resize-none"
+                placeholder="내용을 작성해주세요."
+                className="w-full px-4 py-3 bg-surface-container-low rounded-lg outline-none resize-none"
               />
             </div>
 
             {/* 사진 첨부 */}
-            <label className="flex items-center gap-stack-sm p-4 border-2 border-dashed border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container hover:border-primary transition-colors group">
-              <span className="material-symbols-outlined text-outline-variant group-hover:text-primary">
-                add_a_photo
-              </span>
-
-              <span className="font-label-lg text-label-lg text-on-surface-variant group-hover:text-primary">
-                사진 첨부 (최대 5장)
-              </span>
-
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotoChange}
-              />
-            </label>
+            <PhotoUpload photos={photos} setPhotos={setPhotos} />
 
             {/* 버튼 */}
             <div className="flex flex-col md:flex-row gap-stack-sm pt-stack-md border-t border-surface-variant">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="md:order-1 flex-1 text-on-surface-variant py-3 rounded-lg font-label-lg text-label-lg hover:bg-surface-container-low transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-lg"
               >
                 취소
               </button>
@@ -180,21 +154,13 @@ function CreatePost() {
                 type="button"
                 disabled={loading}
                 onClick={handleSubmit}
-                className={`md:order-3 flex-1 py-3 rounded-lg font-label-lg text-label-lg transition-all active:scale-[0.98]
-                ${
+                className={`flex-1 py-3 rounded-lg ${
                   loading
-                    ? "bg-secondary text-white cursor-not-allowed"
-                    : "bg-primary text-on-primary hover:bg-primary-container"
+                    ? "bg-secondary text-white"
+                    : "bg-primary text-on-primary"
                 }`}
               >
-                {loading ? (
-                  <>
-                    <span className="inline-block animate-spin mr-2">◌</span>
-                    등록 중...
-                  </>
-                ) : (
-                  "등록"
-                )}
+                {loading ? "등록 중..." : "등록"}
               </button>
             </div>
           </div>
