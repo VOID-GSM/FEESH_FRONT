@@ -15,8 +15,8 @@ function Signup() {
 
     const interval = setInterval(() => {
       setTimer((prev) => {
-        if (prev <= 0) {
-          clearInterval(interval);
+        if (prev <= 1) {
+          setIsTimerRunning(false);
           return 0;
         }
 
