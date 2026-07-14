@@ -5,9 +5,19 @@ import Logo from "../components/Logo";
 
 function Login() {
   const navigate = useNavigate();
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
+    if (!email.trim() || !password.trim()) {
+      alert("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    navigate("/home");
+  };
   return (
     <div className="min-h-screen bg-[#f8f9ff] flex flex-col font-sans">
       {/* Header */}
@@ -29,13 +39,15 @@ function Login() {
             <h2 className="text-3xl font-bold text-blue-700">FEESH</h2>
           </div>
 
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* 이메일 */}
             <div>
               <label className="block mb-2 font-medium">이메일</label>
 
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@gsm.hs.kr"
                 className="w-full border rounded-lg px-4 py-3"
               />
@@ -48,6 +60,8 @@ function Login() {
               <div className="relative">
                 <input
                   type={passwordVisible ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="비밀번호를 입력하세요"
                   className="w-full border rounded-lg px-4 py-3 pr-12"
                 />
