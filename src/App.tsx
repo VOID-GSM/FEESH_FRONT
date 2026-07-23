@@ -12,10 +12,9 @@ import Header from "./components/Header";
 function Layout() {
   const location = useLocation();
 
-  const hideHeader =
-    location.pathname === "/login" ||
-    location.pathname === "/signup" ||
-    location.pathname === "/create";
+  const hideHeaderPaths = ["/", "/login", "/signup", "/create"];
+
+  const hideHeader = hideHeaderPaths.includes(location.pathname);
 
   return (
     <>

@@ -11,9 +11,19 @@ function Logo({ size = "sm", className = "" }: LogoProps) {
 
   const sizeClass = size === "lg" ? "h-16 w-auto" : "h-10 w-auto";
 
+  const handleLogoClick = () => {
+    const isLogin = localStorage.getItem("accessToken");
+
+    if (isLogin) {
+      navigate("/home");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
     <button
-      onClick={() => navigate("/home")}
+      onClick={handleLogoClick}
       className="p-0 m-0 bg-transparent border-0 cursor-pointer flex items-center"
     >
       <img
