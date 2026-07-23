@@ -4,10 +4,14 @@ import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
+import Notification from "./pages/Notification";
+import Header from "./components/Header";
 
 function App() {
   return (
     <BrowserRouter>
+      <Header />
+
       <Routes>
         {/* 기본 페이지 */}
         <Route path="/" element={<Login />} />
@@ -26,6 +30,9 @@ function App() {
 
         {/* 게시글 작성 */}
         <Route path="/create" element={<CreatePost />} />
+
+        {/* 알림 페이지 */}
+        <Route path="/notification" element={<Notification />} />
       </Routes>
     </BrowserRouter>
   );
