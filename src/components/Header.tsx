@@ -1,29 +1,93 @@
 import Logo from "./Logo";
 import profileImage from "../assets/profile.png";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
-  return (
-    <header className="bg-surface-bright sticky top-0 z-50 shadow-sm">
-      <nav className="flex justify-between items-center w-full px-margin-mobile md:px-margin-tablet py-stack-sm max-w-[1024px] mx-auto">
-        <div className="flex items-center gap-gutter">
-          <Logo size="sm" />
-          <span className="font-headline-xl text-headline-xl font-bold text-primary">
-            FEESH
-          </span>
-        </div>
+  const navigate = useNavigate();
 
-        <div className="flex items-center gap-stack-md">
-          <button className="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
-            notifications
+  return (
+    <header className="w-full h-16 bg-white sticky top-0 z-50 shadow-sm">
+      <nav
+        className="
+          flex
+          items-center
+          justify-between
+          w-full
+          h-full
+          px-12
+          box-border
+        "
+      >
+        {/* 왼쪽 : 로고 */}
+        <Logo />
+
+        {/* 오른쪽 : 버튼 영역 */}
+        <div
+          className="
+            flex
+            items-center
+            gap-4
+          "
+        >
+          {/* 글쓰기 */}
+          <button
+            onClick={() => navigate("/create")}
+            className="
+              flex
+              items-center
+              gap-2
+              bg-blue-700
+              text-white
+              px-5
+              py-2
+              rounded-full
+              hover:bg-blue-800
+              transition
+            "
+          >
+            <span className="material-symbols-outlined text-sm">edit</span>
+            글쓰기
           </button>
 
-          <div className="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+          {/* 알림 */}
+          <button
+            onClick={() => navigate("/notification")}
+            className="
+              flex
+              items-center
+              justify-center
+              w-10
+              h-10
+              text-gray-600
+              hover:text-blue-700
+              transition
+            "
+          >
+            <span className="material-symbols-outlined">notifications</span>
+          </button>
+
+          {/* 프로필 */}
+          <button
+            onClick={() => navigate("/profile")}
+            className="
+              flex
+              items-center
+              justify-center
+              w-10
+              h-10
+            "
+          >
             <img
               src={profileImage}
               alt="profile"
-              className="w-full h-full object-cover"
+              className="
+                w-9
+                h-9
+                rounded-full
+                object-cover
+              "
             />
-          </div>
+          </button>
         </div>
       </nav>
     </header>

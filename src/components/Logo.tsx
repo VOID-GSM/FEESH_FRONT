@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 interface LogoProps {
@@ -6,10 +7,48 @@ interface LogoProps {
 }
 
 function Logo({ size = "sm", className = "" }: LogoProps) {
-  const sizeClass = size === "lg" ? "h-16 w-auto" : "h-10 w-auto";
+  const navigate = useNavigate();
+
+  const imageSize = size === "lg" ? "h-16" : "h-10";
 
   return (
-    <img src={logo} alt="FEESH 로고" className={`${sizeClass} ${className}`} />
+    <button
+      onClick={() => navigate("/home")}
+      className="
+        flex
+        items-center
+        gap-2
+        p-0
+        m-0
+        bg-transparent
+        border-0
+        cursor-pointer
+      "
+    >
+      {/* FEESH 이미지 로고 */}
+      <img
+        src={logo}
+        alt="FEESH 로고"
+        className={`
+          ${imageSize}
+          w-auto
+          object-contain
+          ${className}
+        `}
+      />
+
+      {/* FEESH 글씨 로고 */}
+      <span
+        className="
+          text-2xl
+          font-extrabold
+          text-blue-700
+          tracking-wide
+        "
+      >
+        FEESH
+      </span>
+    </button>
   );
 }
 
