@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import Notification from "./pages/Notification";
+import PostDetail from "./pages/PostDetail";
 
 import Header from "./components/Header";
 
@@ -13,7 +14,6 @@ function Layout() {
   const location = useLocation();
 
   const hideHeaderPaths = ["/", "/login", "/signup", "/create"];
-
   const hideHeader = hideHeaderPaths.includes(location.pathname);
 
   return (
@@ -41,6 +41,9 @@ function Layout() {
 
         {/* 알림 */}
         <Route path="/notification" element={<Notification />} />
+
+        {/* 게시글 상세 */}
+        <Route path="/post/:id" element={<PostDetail />} />
       </Routes>
     </>
   );

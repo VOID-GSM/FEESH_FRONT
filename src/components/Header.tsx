@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import Logo from "./Logo";
 import profileImage from "../assets/profile.png";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
   const navigate = useNavigate();
@@ -19,9 +19,7 @@ function Header() {
         "
       >
         {/* 왼쪽 : 로고 */}
-        <div className="flex items-center">
-          <Logo />
-        </div>
+        <Logo />
 
         {/* 오른쪽 : 버튼 영역 */}
         <div
