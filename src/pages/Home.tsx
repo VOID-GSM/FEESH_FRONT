@@ -1,139 +1,85 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import profileImage from "../assets/profile.png";
+import { getPosts, getCategories, likePost, unlikePost } from "../api/post";
+import type { PostSummary } from "../api/post";
 
 function Home() {
   const navigate = useNavigate();
 
-  const categories = [
-    "전체",
-    "음식",
-    "의류/쇼핑",
-    "생활용품",
-    "문화/여가",
-    "기타",
-  ];
-
-  const defaultPosts = [
-    {
-      id: 1,
-      category: "음식",
-      title: "성수동 파스타 맛집 탐방",
-      price: "24,500원",
-      description:
-        "오랜만에 친구랑 성수동에서 점심 먹었어요. 분위기도 좋고 파스타 맛도 일품이었습니다.",
-      user: "민지킴",
-      likes: 42,
-      comments: 8,
-      time: "3시간 전",
-    },
-    {
-      id: 2,
-      category: "의류/쇼핑",
-      title: "무신사 스탠다드 기본 티셔츠",
-      price: "15,900원",
-      description: "여름 맞이 가성비 기본 티셔츠 구매했습니다.",
-      user: "준영디자인",
-      likes: 15,
-      comments: 3,
-      time: "5시간 전",
-    },
-    {
-      id: 3,
-      category: "생활용품",
-      title: "생활용품 구매",
-      price: "38,000원",
-      description: "필요했던 생활용품을 구매했습니다.",
-      user: "올리브러버",
-      likes: 56,
-      comments: 12,
-      time: "어제",
-    },
-    {
-      id: 4,
-      category: "문화/여가",
-      title: "영화 관람 후기",
-      price: "15,000원",
-      description: "오랜만에 영화관에 방문했어요.",
-      user: "해피무비",
-      likes: 128,
-      comments: 24,
-      time: "2일 전",
-    },
-    {
-      id: 5,
-      category: "기타",
-      title: "관리비 자동이체 완료",
-      price: "185,000원",
-      description: "이번 달 관리비가 생각보다 많이 나왔네요.",
-      user: "세이버",
-      likes: 4,
-      comments: 1,
-      time: "3일 전",
-    },
-    {
-      id: 6,
-      category: "기타",
-      title: "자격증 응시료 결제",
-      price: "45,000원",
-      description: "자기계발을 위한 투자!",
-      user: "챌린저",
-      likes: 210,
-      comments: 45,
-      time: "1주일 전",
-    },
-  ];
-
-  const [posts, setPosts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>(["전체"]);
+  const [posts, setPosts] = useState<PostSummary[]>([]);
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [sort, setSort] = useState<"latest" | "popular">("latest");
 
-  // 저장된 게시글 불러오기
+  // 카테고리 불러오기 (백엔드 /main/categories 연동)
   useEffect(() => {
-    const savedPosts = localStorage.getItem("posts");
-    const savedLikes = localStorage.getItem("likedPosts");
-
-    if (savedPosts) {
-      setPosts(JSON.parse(savedPosts));
-    } else {
-      setPosts(defaultPosts);
-      localStorage.setItem("posts", JSON.stringify(defaultPosts));
-    }
-
-    if (savedLikes) {
-      setLikedPosts(JSON.parse(savedLikes));
-    }
+    getCategories()
+      .then((res) => {
+        // 백엔드 CategoryResponse 구조에 맞춰 배열 매핑
+        const names = res.data.map((c: { name: string }) => c.name);
+        setCategories(["전체", ...names]);
+      })
+      .catch((err) => console.error("카테고리 불러오기 실패", err));
   }, []);
 
+  // 게시글 불러오기 (백엔드 /main/posts/latest 및 /main/posts/popular 연동)
+  useEffect(() => {
+    getPosts(sort)
+      .then((res) => {
+        // 백엔드 PostListReponse 구조에 맞춰 posts 데이터 설정
+        setPosts(res.data.posts);
+      })
+      .catch((err) => console.error("게시글 불러오기 실패", err));
+  }, [sort]);
+
   // 좋아요
-  const handleLike = (id: number) => {
-    let updatedPosts;
+  const handleLike = async (id: number) => {
+    const isLiked = likedPosts.includes(id);
 
-    if (likedPosts.includes(id)) {
-      updatedPosts = posts.map((post) =>
-        post.id === id ? { ...post, likes: post.likes - 1 } : post,
-      );
+    // 화면 먼저 업데이트
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === id
+          ? {
+              ...post,
+              likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+            }
+          : post,
+      ),
+    );
 
-      const updatedLikes = likedPosts.filter((postId) => postId !== id);
-
-      setLikedPosts(updatedLikes);
-
-      localStorage.setItem("likedPosts", JSON.stringify(updatedLikes));
+    if (isLiked) {
+      setLikedPosts(likedPosts.filter((postId) => postId !== id));
     } else {
-      updatedPosts = posts.map((post) =>
-        post.id === id ? { ...post, likes: post.likes + 1 } : post,
-      );
-
-      const updatedLikes = [...likedPosts, id];
-
-      setLikedPosts(updatedLikes);
-
-      localStorage.setItem("likedPosts", JSON.stringify(updatedLikes));
+      setLikedPosts([...likedPosts, id]);
     }
 
-    setPosts(updatedPosts);
+    // 서버에 반영
+    try {
+      if (isLiked) {
+        await unlikePost(id);
+      } else {
+        await likePost(id);
+      }
+    } catch (err) {
+      console.error("좋아요 처리 실패", err);
+    }
+  };
 
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
+  // 상대 시간 표시 (3시간 전, 어제 등)
+  const formatTime = (iso: string) => {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "방금 전";
+    if (diffMin < 60) return `${diffMin}분 전`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}시간 전`;
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay === 1) return "어제";
+    if (diffDay < 7) return `${diffDay}일 전`;
+    return new Date(iso).toLocaleDateString();
   };
 
   // 카테고리 필터
@@ -172,9 +118,19 @@ function Home() {
       {/* 정렬 */}
 
       <div className="flex gap-8 border-b mb-6">
-        <button className="text-primary py-3">최신순</button>
+        <button
+          onClick={() => setSort("latest")}
+          className={sort === "latest" ? "text-primary py-3" : "text-gray-500 py-3"}
+        >
+          최신순
+        </button>
 
-        <button className="text-gray-500 py-3">좋아요순</button>
+        <button
+          onClick={() => setSort("popular")}
+          className={sort === "popular" ? "text-primary py-3" : "text-gray-500 py-3"}
+        >
+          좋아요순
+        </button>
       </div>
 
       {/* 게시글 */}
@@ -256,7 +212,7 @@ function Home() {
               mt-2
             "
               >
-                {post.price}
+                {post.price.toLocaleString()}원
               </p>
 
               <p
@@ -287,12 +243,12 @@ function Home() {
             >
               <div className="flex items-center gap-2">
                 <img
-                  src={profileImage}
+                  src={post.profileImageUrl || profileImage}
                   className="w-6 h-6 rounded-full"
                   alt="profile"
                 />
 
-                <span>{post.user}</span>
+                <span>{post.nickname}</span>
               </div>
 
               <div
@@ -329,7 +285,7 @@ function Home() {
                     favorite
                   </span>
 
-                  {post.likes}
+                  {post.likeCount}
                 </button>
 
                 {/* 댓글 표시만 */}
@@ -350,10 +306,10 @@ function Home() {
                     chat_bubble
                   </span>
 
-                  {post.comments}
+                  {post.commentCount}
                 </span>
 
-                <span>{post.time}</span>
+                <span>{formatTime(post.createdAt)}</span>
               </div>
             </div>
           </article>
