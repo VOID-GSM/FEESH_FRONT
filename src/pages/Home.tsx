@@ -1,7 +1,87 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import profileImage from "../assets/profile.png";
 
+type Post = {
+  id: number;
+  category: string;
+  title: string;
+  price: string;
+  description: string;
+  user: string;
+  likes: number;
+  comments: number;
+  time: string;
+};
+const defaultPosts: Post[] = [
+  {
+    id: 1,
+    category: "음식",
+    title: "성수동 파스타 맛집 탐방",
+    price: "24,500원",
+    description:
+      "오랜만에 친구랑 성수동에서 점심 먹었어요. 분위기도 좋고 파스타 맛도 일품이었습니다.",
+    user: "민지킴",
+    likes: 42,
+    comments: 8,
+    time: "3시간 전",
+  },
+  {
+    id: 2,
+    category: "의류/쇼핑",
+    title: "무신사 스탠다드 기본 티셔츠",
+    price: "15,900원",
+    description: "여름 맞이 가성비 기본 티셔츠 구매했습니다.",
+    user: "준영디자인",
+    likes: 15,
+    comments: 3,
+    time: "5시간 전",
+  },
+  {
+    id: 3,
+    category: "생활용품",
+    title: "생활용품 구매",
+    price: "38,000원",
+    description: "필요했던 생활용품을 구매했습니다.",
+    user: "올리브러버",
+    likes: 56,
+    comments: 12,
+    time: "어제",
+  },
+  {
+    id: 4,
+    category: "문화/여가",
+    title: "영화 관람 후기",
+    price: "15,000원",
+    description: "오랜만에 영화관에 방문했어요.",
+    user: "해피무비",
+    likes: 128,
+    comments: 24,
+    time: "2일 전",
+  },
+  {
+    id: 5,
+    category: "기타",
+    title: "관리비 자동이체 완료",
+    price: "185,000원",
+    description: "이번 달 관리비가 생각보다 많이 나왔네요.",
+    user: "세이버",
+    likes: 4,
+    comments: 1,
+    time: "3일 전",
+  },
+  {
+    id: 6,
+    category: "기타",
+    title: "자격증 응시료 결제",
+    price: "45,000원",
+    description: "자기계발을 위한 투자!",
+    user: "챌린저",
+    likes: 210,
+    comments: 45,
+    time: "1주일 전",
+  },
+];
 function Home() {
   const navigate = useNavigate();
 
@@ -14,100 +94,26 @@ function Home() {
     "기타",
   ];
 
-  const defaultPosts = [
-    {
-      id: 1,
-      category: "음식",
-      title: "성수동 파스타 맛집 탐방",
-      price: "24,500원",
-      description:
-        "오랜만에 친구랑 성수동에서 점심 먹었어요. 분위기도 좋고 파스타 맛도 일품이었습니다.",
-      user: "민지킴",
-      likes: 42,
-      comments: 8,
-      time: "3시간 전",
-    },
-    {
-      id: 2,
-      category: "의류/쇼핑",
-      title: "무신사 스탠다드 기본 티셔츠",
-      price: "15,900원",
-      description: "여름 맞이 가성비 기본 티셔츠 구매했습니다.",
-      user: "준영디자인",
-      likes: 15,
-      comments: 3,
-      time: "5시간 전",
-    },
-    {
-      id: 3,
-      category: "생활용품",
-      title: "생활용품 구매",
-      price: "38,000원",
-      description: "필요했던 생활용품을 구매했습니다.",
-      user: "올리브러버",
-      likes: 56,
-      comments: 12,
-      time: "어제",
-    },
-    {
-      id: 4,
-      category: "문화/여가",
-      title: "영화 관람 후기",
-      price: "15,000원",
-      description: "오랜만에 영화관에 방문했어요.",
-      user: "해피무비",
-      likes: 128,
-      comments: 24,
-      time: "2일 전",
-    },
-    {
-      id: 5,
-      category: "기타",
-      title: "관리비 자동이체 완료",
-      price: "185,000원",
-      description: "이번 달 관리비가 생각보다 많이 나왔네요.",
-      user: "세이버",
-      likes: 4,
-      comments: 1,
-      time: "3일 전",
-    },
-    {
-      id: 6,
-      category: "기타",
-      title: "자격증 응시료 결제",
-      price: "45,000원",
-      description: "자기계발을 위한 투자!",
-      user: "챌린저",
-      likes: 210,
-      comments: 45,
-      time: "1주일 전",
-    },
-  ];
-
-  const [posts, setPosts] = useState<any[]>([]);
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("전체");
-
-  // 저장된 게시글 불러오기
-  useEffect(() => {
+  const [posts, setPosts] = useState<Post[]>(() => {
     const savedPosts = localStorage.getItem("posts");
-    const savedLikes = localStorage.getItem("likedPosts");
 
     if (savedPosts) {
-      setPosts(JSON.parse(savedPosts));
-    } else {
-      setPosts(defaultPosts);
-      localStorage.setItem("posts", JSON.stringify(defaultPosts));
+      return JSON.parse(savedPosts) as Post[];
     }
 
-    if (savedLikes) {
-      setLikedPosts(JSON.parse(savedLikes));
-    }
-  }, []);
+    localStorage.setItem("posts", JSON.stringify(defaultPosts));
+    return defaultPosts;
+  });
+  const [likedPosts, setLikedPosts] = useState<number[]>(() => {
+    const savedLikes = localStorage.getItem("likedPosts");
+
+    return savedLikes ? (JSON.parse(savedLikes) as number[]) : [];
+  });
+  const [selectedCategory, setSelectedCategory] = useState("전체");
 
   // 좋아요
   const handleLike = (id: number) => {
-    let updatedPosts;
+    let updatedPosts: Post[];
 
     if (likedPosts.includes(id)) {
       updatedPosts = posts.map((post) =>
