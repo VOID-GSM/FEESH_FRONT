@@ -38,7 +38,7 @@ function Home() {
   const handleLike = async (id: number) => {
     const isLiked = likedPosts.includes(id);
 
-    // 화면 먼저 업데이트
+    // 화면 먼저 업데이트 (낙관적 업데이트)
     setPosts((prev) =>
       prev.map((post) =>
         post.id === id
@@ -65,6 +65,21 @@ function Home() {
       }
     } catch (err) {
       console.error("좋아요 처리 실패", err);
+
+      // 실패 시 원래 상태로 롤백
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === id
+            ? {
+                ...post,
+                likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1,
+              }
+            : post,
+        ),
+      );
+      setLikedPosts((prev) =>
+        isLiked ? [...prev, id] : prev.filter((postId) => postId !== id),
+      );
     }
   };
 
