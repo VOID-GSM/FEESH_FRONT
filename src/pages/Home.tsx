@@ -205,15 +205,9 @@ function Home() {
             <div className="p-4">
               <h3 className="font-bold text-lg">{post.title}</h3>
 
-              <p
-                className="
-              text-primary
-              font-bold
-              mt-2
-            "
-              >
-                {post.price.toLocaleString()}원
-              </p>
+             <p className="text-primary font-bold mt-2">
+  {post.price != null ? `${post.price.toLocaleString()}원` : "가격 미정"}
+</p>
 
               <p
                 className="

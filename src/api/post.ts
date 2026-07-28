@@ -34,3 +34,12 @@ export const getCategories = () => api.get<Category[]>("/main/categories");
 export const likePost = (postId: number) => api.post(`/posts/${postId}/like`);
 
 export const unlikePost = (postId: number) => api.delete(`/posts/${postId}/like`);
+
+export const createPost = (payload: FormData) =>
+  api.post("/posts", payload, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  

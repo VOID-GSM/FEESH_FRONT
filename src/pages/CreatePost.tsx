@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PhotoUpload from "../components/PhotoUpload";
+import { createPost } from "../api/post";
 
 function CreatePost() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ function CreatePost() {
   };
 
   // 게시글 등록
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
       return;
@@ -60,64 +61,28 @@ function CreatePost() {
         ? etcCategory
         : categories.find((item) => item.id === category)?.label;
 
-    const newPost = {
-      // 게시글 고유 번호
-      id: Date.now(),
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("content", content);
+    formData.append("category", categoryName ?? "");
 
-      // 카테고리
-      category: categoryName,
-
-      // 제목
-      title,
-
-      // 금액
-      price: "0원",
-
-      // 내용
-      description: content,
-
-      // 작성자
-      user: "민서",
-
-      // 사용자 구분
-      userId: "user1",
-
-      // 내가 작성한 글인지 확인
-      isMine: true,
-
-      // 좋아요
-      likes: 0,
-
-      // 댓글
-      comments: 0,
-
-      // 사진
-      photos,
-
-      // 작성 시간
-      createdAt: Date.now(),
-
-      // 표시용 시간
-      time: "방금 전",
-    };
-
-    // 기존 게시글 가져오기
-    const savedPosts = JSON.parse(localStorage.getItem("posts") || "[]");
-
-    // 새 게시글 추가
-    const updatedPosts = [newPost, ...savedPosts];
-
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
+    photos.forEach((photo) => {
+      formData.append("photos", photo);
+    });
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await createPost(formData);
 
       alert("게시글이 등록되었습니다.");
-
       navigate("/home");
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      alert("게시글 등록에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
