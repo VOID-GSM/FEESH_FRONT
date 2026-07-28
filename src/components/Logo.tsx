@@ -5,9 +5,10 @@ interface LogoProps {
   size?: "sm" | "lg";
   className?: string;
   stacked?: boolean;
+  to?: string;
 }
 
-function Logo({ size = "sm", className = "", stacked = false }: LogoProps) {
+function Logo({ size = "sm", className = "", stacked = false, to }: LogoProps) {
   const navigate = useNavigate();
 
   const imageSize = size === "lg" ? "h-16" : "h-10";
@@ -16,9 +17,20 @@ function Logo({ size = "sm", className = "", stacked = false }: LogoProps) {
     ? "flex flex-col items-center"
     : "flex items-center";
 
+  const handleClick = () => {
+    if (to) {
+      navigate(to);
+      return;
+    }
+
+    // to prop이 없으면 토큰 유무로 분기 (미로그인 상태에서 로그인/회원가입 화면 로고 클릭 시 /home으로 안 가도록)
+    const token = localStorage.getItem("token");
+    navigate(token ? "/home" : "/");
+  };
+
   return (
     <button
-      onClick={() => navigate("/home")}
+      onClick={handleClick}
       className={`${layoutClass} gap-2 p-0 m-0 bg-transparent border-0 cursor-pointer`}
     >
       {/* FEESH 이미지 로고 */}
