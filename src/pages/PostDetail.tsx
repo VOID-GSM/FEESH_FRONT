@@ -45,6 +45,9 @@ function PostDetail() {
   const handleDelete = async () => {
     const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
 
+     // TODO: 백엔드 응답에 isMine 추가되면 위 삭제 버튼 JSX 주석 해제
+  void handleDelete;
+  
     if (!confirmDelete) return;
 
     try {
