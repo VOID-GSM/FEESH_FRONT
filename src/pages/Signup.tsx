@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Logo from "../components/Logo";
 import PasswordInput from "../components/PasswordInput";
 import { checkEmail, signup, sendEmailCode, verifyEmailCode } from "../api/authApi";
+import axios from "axios";
 
 function Signup() {
   const [timer, setTimer] = useState(180);
@@ -147,11 +148,15 @@ function Signup() {
       alert(response.message);
 
       window.location.href = "/login";
-    } catch (error: any) {
-      console.error(error);
-      const serverMessage = error?.response?.data?.message;
-      setSignupMessage(serverMessage || "회원가입에 실패했습니다.");
-    }
+    } catch (error) {
+  console.error(error);
+
+  const serverMessage = axios.isAxiosError(error)
+    ? error.response?.data?.message
+    : undefined;
+
+  setSignupMessage(serverMessage || "회원가입에 실패했습니다.");
+}
   };
 
 

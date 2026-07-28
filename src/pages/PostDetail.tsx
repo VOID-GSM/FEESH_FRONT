@@ -14,7 +14,9 @@ function PostDetail() {
   const [likes, setLikes] = useState(0);
   const [showComments, setShowComments] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
+    // id가 바뀔 때 로딩 상태를 다시 켜기 위한 의도된 동작
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     getPost(Number(id))
@@ -38,6 +40,8 @@ function PostDetail() {
   };
 
   // 게시글 삭제
+  // TODO: 백엔드 응답에 isMine 추가되면 아래 삭제 버튼 JSX 주석 해제하고 연결
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDelete = async () => {
     const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
 
