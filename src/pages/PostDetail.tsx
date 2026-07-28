@@ -1,18 +1,30 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import profileImage from "../assets/profile.png";
+import { getPost, deletePost } from "../api/post";
+import type { PostDetailResponse } from "../api/post";
 
 function PostDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const posts = JSON.parse(localStorage.getItem("posts") || "[]");
-
-  const post = posts.find((item: any) => item.id === Number(id));
-
+  const [post, setPost] = useState<PostDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(post?.likes || 0);
+  const [likes, setLikes] = useState(0);
   const [showComments, setShowComments] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+
+    getPost(Number(id))
+      .then((res) => {
+        setPost(res.data);
+        setLikes(res.data.likeCount);
+      })
+      .catch(() => setPost(null))
+      .finally(() => setLoading(false));
+  }, [id]);
 
   // 좋아요
   const handleLike = () => {
@@ -26,21 +38,25 @@ function PostDetail() {
   };
 
   // 게시글 삭제
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
 
-    if (confirmDelete) {
-      const updatedPosts = posts.filter((item: any) => item.id !== Number(id));
+    if (!confirmDelete) return;
 
-      localStorage.setItem("posts", JSON.stringify(updatedPosts));
-
+    try {
+      await deletePost(Number(id));
       alert("게시글이 삭제되었습니다.");
-
       navigate("/home");
+    } catch (error) {
+      console.error(error);
+      alert("게시글 삭제에 실패했습니다.");
     }
   };
 
-  // 게시글 없음
+  if (loading) {
+    return <main className="p-10 text-center">불러오는 중...</main>;
+  }
+
   if (!post) {
     return (
       <main className="p-10 text-center">존재하지 않는 게시글입니다.</main>
@@ -76,14 +92,16 @@ function PostDetail() {
             />
 
             <div>
-              <p className="font-semibold">{post.user}</p>
+              <p className="font-semibold">{post.authorNickname}</p>
 
-              <p className="text-sm text-gray-500">{post.time}</p>
+              <p className="text-sm text-gray-500">
+                {new Date(post.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
 
-          {/* 내 글 삭제 버튼 */}
-          {post.isMine && (
+          {/* 내 글 삭제 버튼 - 백엔드 응답에 isMine 없어 현재 비활성화 */}
+          {/* {post.isMine && (
             <button
               onClick={handleDelete}
               className="
@@ -94,7 +112,7 @@ function PostDetail() {
             >
               삭제
             </button>
-          )}
+          )} */}
         </div>
 
         {/* 제목 */}
@@ -126,14 +144,14 @@ function PostDetail() {
 
         {/* 내용 */}
         <div className="text-gray-700 leading-8">
-          <p>{post.description}</p>
+          <p>{post.content}</p>
         </div>
 
-        {/* 지출 */}
+        {/* 조회수 (price 필드가 없어 임시로 대체) */}
         <div className="bg-blue-50 rounded-xl p-5 mt-8">
-          <h3 className="font-bold text-lg mb-3">총 지출</h3>
+          <h3 className="font-bold text-lg mb-3">조회수</h3>
 
-          <p className="font-bold text-blue-700">{post.price}</p>
+          <p className="font-bold text-blue-700">{post.viewCount}</p>
         </div>
 
         {/* 좋아요 댓글 */}
@@ -170,7 +188,7 @@ function PostDetail() {
             "
           >
             <span className="material-symbols-outlined">chat_bubble</span>
-            댓글 {post.comments}
+            댓글
           </button>
         </div>
       </article>

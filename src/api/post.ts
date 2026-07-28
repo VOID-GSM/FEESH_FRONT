@@ -42,4 +42,19 @@ export const createPost = (payload: FormData) =>
     },
   });
 
+  export interface PostDetailResponse {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  authorNickname: string;
+  likeCount: number;
+  viewCount: number;
+  createdAt: string;
+}
+
+export const getPost = (postId: number) =>
+  api.get<PostDetailResponse>(`/posts/${postId}`);
+
+export const deletePost = (postId: number) => api.delete(`/posts/${postId}`);
   
