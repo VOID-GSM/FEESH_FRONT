@@ -17,22 +17,8 @@ function Logo({ size = "sm", className = "", stacked = false, to }: LogoProps) {
     ? "flex flex-col items-center"
     : "flex items-center";
 
-  const handleClick = () => {
-    if (to) {
-      navigate(to);
-      return;
-    }
-
-    // to prop이 없으면 토큰 유무로 분기 (미로그인 상태에서 로그인/회원가입 화면 로고 클릭 시 /home으로 안 가도록)
-    const token = localStorage.getItem("token");
-    navigate(token ? "/home" : "/");
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      className={`${layoutClass} gap-2 p-0 m-0 bg-transparent border-0 cursor-pointer`}
-    >
+  const content = (
+    <>
       {/* FEESH 이미지 로고 */}
       <img
         src={logo}
@@ -44,6 +30,24 @@ function Logo({ size = "sm", className = "", stacked = false, to }: LogoProps) {
       <span className="text-2xl font-extrabold text-blue-700 tracking-wide">
         FEESH
       </span>
+    </>
+  );
+
+  // to prop이 없으면 클릭해도 아무 곳으로도 이동하지 않음 (로그인/회원가입 화면 등)
+  if (!to) {
+    return (
+      <div className={`${layoutClass} gap-2`}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => navigate(to)}
+      className={`${layoutClass} gap-2 p-0 m-0 bg-transparent border-0 cursor-pointer`}
+    >
+      {content}
     </button>
   );
 }

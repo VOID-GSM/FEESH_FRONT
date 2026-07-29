@@ -19,7 +19,7 @@ function Header() {
         "
       >
         {/* 왼쪽 : 로고 */}
-        <Logo />
+        <Logo to="/home" />
 
         {/* 오른쪽 : 버튼 영역 */}
         <div
