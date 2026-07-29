@@ -2,17 +2,24 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import profileImage from "../assets/profile.png";
 import { deletePost, getPost, likePost, unlikePost } from "../api/post";
+import { createComment, getComments, deleteComment } from "../api/comment";
 
 interface Post {
   id: number;
-  user: string;
-  time: string;
   title: string;
-  description: string;
-  price: string;
-  likes: number;
-  comments: number;
-  isMine: boolean;
+  content: string;
+  category: string;
+  authorNickname: string;
+  likeCount: number;
+  viewCount: number;
+  createdAt: string;
+}
+
+interface Comment {
+  commentId: number;
+  content: string;
+  authorNickname: string;
+  createdAt: string;
 }
 
 function PostDetail() {
@@ -20,9 +27,14 @@ function PostDetail() {
   const { id } = useParams();
 
   const [post, setPost] = useState<Post | null>(null);
+
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(0);
+
   const [showComments, setShowComments] = useState(false);
+
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentInput, setCommentInput] = useState("");
 
   // 게시글 상세 조회
   useEffect(() => {
@@ -33,7 +45,8 @@ function PostDetail() {
         const response = await getPost(Number(id));
 
         setPost(response.data);
-        setLikes(response.data.likes);
+
+        setLikes(response.data.likeCount);
       } catch (error) {
         console.error("게시글 조회 실패", error);
       }
@@ -42,6 +55,58 @@ function PostDetail() {
     fetchPost();
   }, [id]);
 
+  // 댓글 조회
+  const handleComments = async () => {
+    if (!id) return;
+
+    setShowComments(!showComments);
+
+    try {
+      const response = await getComments(Number(id));
+
+      setComments(response.data);
+    } catch (error) {
+      console.error("댓글 조회 실패", error);
+    }
+  };
+
+  // 댓글 작성
+  const handleCommentSubmit = async () => {
+    if (!id) return;
+
+    if (!commentInput.trim()) {
+      alert("댓글을 입력해주세요.");
+      return;
+    }
+
+    try {
+      await createComment(Number(id), {
+        content: commentInput,
+      });
+
+      const response = await getComments(Number(id));
+
+      setComments(response.data);
+
+      setCommentInput("");
+    } catch (error) {
+      console.error("댓글 작성 실패", error);
+    }
+  };
+
+  // 댓글 삭제
+  const handleDeleteComment = async (commentId: number) => {
+    try {
+      await deleteComment(commentId);
+
+      setComments((prev) =>
+        prev.filter((comment) => comment.commentId !== commentId),
+      );
+    } catch (error) {
+      console.error("댓글 삭제 실패", error);
+    }
+  };
+
   // 좋아요
   const handleLike = async () => {
     if (!post) return;
@@ -49,8 +114,8 @@ function PostDetail() {
     const previousLiked = liked;
     const previousLikes = likes;
 
-    // 화면 먼저 변경
     setLiked(!liked);
+
     setLikes(liked ? likes - 1 : likes + 1);
 
     try {
@@ -62,7 +127,6 @@ function PostDetail() {
     } catch (error) {
       console.error("좋아요 실패", error);
 
-      // 실패하면 원상복구
       setLiked(previousLiked);
       setLikes(previousLikes);
     }
@@ -83,9 +147,7 @@ function PostDetail() {
 
       navigate("/home");
     } catch (error) {
-      console.error("삭제 실패", error);
-
-      alert("게시글 삭제에 실패했습니다.");
+      console.error("게시글 삭제 실패", error);
     }
   };
 
@@ -99,214 +161,110 @@ function PostDetail() {
     <main className="max-w-4xl mx-auto px-6 py-10">
       <button
         onClick={() => navigate("/home")}
-        className="
-        flex
-        items-center
-        gap-2
-        text-gray-600
-        hover:text-primary
-        mb-8
-        "
+        className="flex items-center gap-2 mb-8 text-gray-600"
       >
         <span className="material-symbols-outlined">arrow_back</span>
         뒤로가기
       </button>
 
-      <article
-        className="
-        bg-white
-        rounded-2xl
-        shadow-sm
-        border
-        p-8
-        "
-      >
-        {/* 작성자 영역 */}
+      <article className="bg-white border rounded-2xl p-8">
+        {/* 작성자 */}
 
-        <div
-          className="
-          flex
-          justify-between
-          items-center
-          mb-6
-          "
-        >
-          <div className="flex items-center gap-3">
-            <img
-              src={profileImage}
-              alt="프로필"
-              className="
-              w-12
-              h-12
-              rounded-full
-              "
-            />
+        <div className="flex items-center gap-3 mb-6">
+          <img
+            src={profileImage}
+            className="w-12 h-12 rounded-full"
+            alt="profile"
+          />
 
-            <div>
-              <p className="font-semibold">{post.user}</p>
+          <div>
+            <p className="font-semibold">{post.authorNickname}</p>
 
-              <p className="text-sm text-gray-500">{post.time}</p>
-            </div>
+            <p className="text-sm text-gray-500">
+              {new Date(post.createdAt).toLocaleString()}
+            </p>
           </div>
-
-          {post.isMine && (
-            <button
-              onClick={handleDelete}
-              className="
-              text-red-500
-              hover:text-red-700
-              font-semibold
-              "
-            >
-              삭제
-            </button>
-          )}
         </div>
 
-        {/* 제목 */}
+        <button onClick={handleDelete} className="text-red-500 mb-5">
+          삭제
+        </button>
 
         <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
 
-        {/* 이미지 */}
-
-        <div
-          className="
-          w-full
-          h-[360px]
-          rounded-xl
-          bg-gray-200
-          flex
-          items-center
-          justify-center
-          mb-8
-          "
-        >
-          <span
-            className="
-            material-symbols-outlined
-            text-7xl
-            text-gray-400
-            "
-          >
+        <div className="bg-gray-100 rounded-xl h-80 flex items-center justify-center mb-8">
+          <span className="material-symbols-outlined text-7xl text-gray-400">
             image
           </span>
         </div>
 
-        {/* 내용 */}
-
-        <div
-          className="
-          text-gray-700
-          leading-8
-          "
-        >
-          <p>{post.description}</p>
-        </div>
-
-        {/* 금액 */}
-
-        <div
-          className="
-          bg-blue-50
-          rounded-xl
-          p-5
-          mt-8
-          "
-        >
-          <h3 className="font-bold text-lg mb-3">총 지출</h3>
-
-          <p
-            className="
-            font-bold
-            text-blue-700
-            "
-          >
-            {post.price}
-          </p>
-        </div>
+        <p className="leading-8 text-gray-700">{post.content}</p>
 
         {/* 좋아요 댓글 */}
 
-        <div
-          className="
-          flex
-          items-center
-          gap-8
-          mt-8
-          pt-6
-          border-t
-          "
-        >
-          <button
-            onClick={handleLike}
-            className="
-            flex
-            items-center
-            gap-2
-            "
-          >
+        <div className="flex gap-8 mt-8 pt-6 border-t">
+          <button onClick={handleLike} className="flex gap-2 items-center">
             <span
-              className={`
-              material-symbols-outlined
-              ${liked ? "text-red-500" : "text-gray-500"}
-              `}
+              className={`material-symbols-outlined ${
+                liked ? "text-red-500" : "text-gray-500"
+              }`}
             >
               favorite
             </span>
             좋아요 {likes}
           </button>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="
-            flex
-            items-center
-            gap-2
-            "
-          >
+          <button onClick={handleComments} className="flex gap-2 items-center">
             <span className="material-symbols-outlined">chat_bubble</span>
-            댓글 {post.comments}
+            댓글 {comments.length}
           </button>
         </div>
       </article>
+
+      {/* 댓글 */}
 
       {showComments && (
         <section className="mt-10">
           <h2 className="text-2xl font-bold mb-5">댓글</h2>
 
-          <div
-            className="
-            bg-white
-            rounded-2xl
-            border
-            p-5
-            "
-          >
+          <div className="bg-white border rounded-xl p-5">
             <textarea
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
               placeholder="댓글을 입력하세요."
-              className="
-              w-full
-              h-28
-              border
-              rounded-lg
-              p-4
-              resize-none
-              "
+              className="w-full h-28 border rounded-lg p-4 resize-none"
             />
 
             <div className="flex justify-end mt-4">
               <button
-                className="
-                bg-primary
-                text-white
-                px-6
-                py-2
-                rounded-lg
-                "
+                onClick={handleCommentSubmit}
+                className="bg-primary text-white px-6 py-2 rounded-lg"
               >
                 등록
               </button>
             </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {comments.map((comment) => (
+              <div
+                key={comment.commentId}
+                className="bg-white border rounded-xl p-4 flex justify-between"
+              >
+                <div>
+                  <p className="font-semibold">{comment.authorNickname}</p>
+
+                  <p>{comment.content}</p>
+                </div>
+
+                <button
+                  onClick={() => handleDeleteComment(comment.commentId)}
+                  className="text-red-500"
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
           </div>
         </section>
       )}
