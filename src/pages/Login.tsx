@@ -2,31 +2,56 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import Logo from "../components/Logo";
+import { login } from "../api/authApi";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!email.trim() || !password.trim()) {
-      alert("이메일과 비밀번호를 입력해주세요.");
-      return;
-    }
+  if (!email.trim() || !password.trim()) {
+    alert("이메일과 비밀번호를 입력해주세요.");
+    return;
+  }
+
+  try {
+    const response = await login({
+      email,
+      password,
+    });
+
+    localStorage.setItem(
+      "accessToken",
+      response.accessToken
+    );
+
+    localStorage.setItem(
+      "email",
+      response.email
+    );
+
+    localStorage.setItem(
+      "nickname",
+      response.nickname
+    );
+
+    alert(response.message);
 
     navigate("/home");
-  };
+
+  } catch (error) {
+    console.error(error);
+    alert("로그인에 실패했습니다.");
+  }
+};
   return (
     <div className="min-h-screen bg-[#f8f9ff] flex flex-col font-sans">
       {/* Header */}
       <header className="w-full h-16 flex items-center px-8">
-        <div className="flex items-center gap-2">
-          <Logo />
-
-          <h1 className="text-2xl font-bold text-blue-700">FEESH</h1>
-        </div>
+        <Logo />
       </header>
 
       {/* Main */}
@@ -34,9 +59,7 @@ function Login() {
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <Logo size="lg" />
-
-            <h2 className="text-3xl font-bold text-blue-700">FEESH</h2>
+            <Logo size="lg" stacked />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -76,22 +99,11 @@ function Login() {
               </div>
             </div>
 
-            {/* 자동 로그인 */}
-            <div className="flex justify-between items-center text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" />
-                자동 로그인
-              </label>
-
-              <a href="#" className="text-blue-700">
-                아이디/비밀번호 찾기
-              </a>
-            </div>
 
             {/* 로그인 버튼 */}
             <button
               type="submit"
-              className="w-full bg-blue-700 text-white rounded-lg py-3 hover:bg-blue-800"
+              className="w-full bg-blue-700 text-white rounded-lg py-3 hover:bg-blue-800 mt-8"
             >
               로그인
             </button>

@@ -1,13 +1,25 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
+import Notification from "./pages/Notification";
+import PostDetail from "./pages/PostDetail";
 
-function App() {
+import Header from "./components/Header";
+
+function Layout() {
+  const location = useLocation();
+
+  const hideHeaderPaths = ["/", "/login", "/signup", "/create"];
+  const hideHeader = hideHeaderPaths.includes(location.pathname);
+
   return (
-    <BrowserRouter>
+    <>
+      {!hideHeader && <Header />}
+
       <Routes>
         {/* 기본 페이지 */}
         <Route path="/" element={<Login />} />
@@ -26,7 +38,21 @@ function App() {
 
         {/* 게시글 작성 */}
         <Route path="/create" element={<CreatePost />} />
+
+        {/* 알림 */}
+        <Route path="/notification" element={<Notification />} />
+
+        {/* 게시글 상세 */}
+        <Route path="/post/:id" element={<PostDetail />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Layout />
     </BrowserRouter>
   );
 }

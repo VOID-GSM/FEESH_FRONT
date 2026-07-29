@@ -1,72 +1,110 @@
-import axios from "./axios";
+import api from "./axios";
 
-// =====================
-// 로그인
-// =====================
+/**
+ * 이메일 중복 확인
+ */
+interface CheckEmailRequest {
+  email: string;
+}
 
-export interface LoginRequest {
+interface CheckEmailResponse {
+  duplicated: boolean;
+  message: string;
+}
+
+export const checkEmail = async (
+  data: CheckEmailRequest
+): Promise<CheckEmailResponse> => {
+  const response = await api.post("/auth/check-email", data);
+
+  return response.data;
+};
+
+
+/**
+ * 로그인
+ */
+interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
-  token: string;
+interface LoginResponse {
+  message: string;
+  accessToken: string;
   email: string;
   nickname: string;
 }
 
-export const login = (data: LoginRequest) => {
-  return axios.post<LoginResponse>("/auth/login", data);
+export const login = async (
+  data: LoginRequest
+): Promise<LoginResponse> => {
+  const response = await api.post("/auth/login", data);
+
+  return response.data;
 };
 
-// =====================
-// 회원가입
-// =====================
 
-export interface SignupRequest {
+/**
+ * 회원가입
+ */
+interface SignupRequest {
   email: string;
   password: string;
   nickname: string;
 }
 
-export interface SignupResponse {
-  id: number;
+interface SignupResponse {
+  message: string;
   email: string;
   nickname: string;
 }
 
-export const signup = (data: SignupRequest) => {
-  return axios.post<SignupResponse>("/auth/signup", data);
+export const signup = async (
+  data: SignupRequest
+): Promise<SignupResponse> => {
+  const response = await api.post("/auth/signup", data);
+
+  return response.data;
 };
 
-// =====================
-// 이메일 인증
-// =====================
-
-export interface CheckEmailRequest {
+/**
+ * 이메일 인증번호 발송
+ */
+interface SendEmailCodeRequest {
   email: string;
 }
 
-export interface SendEmailCodeRequest {
-  email: string;
+interface SendEmailCodeResponse {
+  message: string;
 }
 
-export interface VerifyEmailCodeRequest {
+export const sendEmailCode = async (
+  data: SendEmailCodeRequest
+): Promise<SendEmailCodeResponse> => {
+  const response = await api.post("/auth/send-email-code", data);
+
+  return response.data;
+};
+
+
+/**
+ * 이메일 인증번호 확인
+ */
+interface VerifyEmailCodeRequest {
   email: string;
   code: string;
 }
 
-// 이메일 중복 확인
-export const checkEmail = (data: CheckEmailRequest) => {
-  return axios.post("/auth/check-email", data);
-};
+interface VerifyEmailCodeResponse {
+  verified: boolean;
+  message: string;
+}
 
-// 인증번호 전송
-export const sendEmailCode = (data: SendEmailCodeRequest) => {
-  return axios.post("/auth/send-email-code", data);
-};
+export const verifyEmailCode = async (
+  data: VerifyEmailCodeRequest
+): Promise<VerifyEmailCodeResponse> => {
+  const response = await api.post("/auth/verify-email-code", data);
 
-// 인증번호 확인
-export const verifyEmailCode = (data: VerifyEmailCodeRequest) => {
-  return axios.post("/auth/verify-email-code", data);
+  return response.data;
 };
