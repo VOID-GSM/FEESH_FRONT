@@ -3,23 +3,27 @@ import { useNavigate, useParams } from "react-router-dom";
 import profileImage from "../assets/profile.png";
 
 import { deletePost, getPost, likePost, unlikePost } from "../api/post";
+
 import { createComment, deleteComment, getComments } from "../api/comment";
 
 interface Post {
   id: number;
   title: string;
   content: string;
-  category: string;
+  category?: string;
   authorNickname: string;
   likeCount: number;
-  viewCount: number;
+  viewCount?: number;
+  commentCount?: number;
   createdAt: string;
   isMine?: boolean;
+  liked?: boolean;
 }
 
 interface Comment {
   commentId: number;
   content: string;
+  authorId?: number;
   authorNickname: string;
   createdAt: string;
 }
@@ -31,14 +35,17 @@ function PostDetail() {
   const [post, setPost] = useState<Post | null>(null);
 
   const [liked, setLiked] = useState(false);
+
   const [likes, setLikes] = useState(0);
 
   const [showComments, setShowComments] = useState(false);
 
   const [comments, setComments] = useState<Comment[]>([]);
+
   const [commentInput, setCommentInput] = useState("");
 
   // 게시글 조회
+
   useEffect(() => {
     if (!id) return;
 
@@ -47,7 +54,10 @@ function PostDetail() {
         const response = await getPost(Number(id));
 
         setPost(response.data);
-        setLikes(response.data.likeCount);
+
+        setLikes(response.data.likeCount ?? 0);
+
+        setLiked(response.data.liked ?? false);
       } catch (error) {
         console.error("게시글 조회 실패", error);
       }
@@ -57,30 +67,31 @@ function PostDetail() {
   }, [id]);
 
   // 댓글 조회
+
   const fetchComments = async () => {
     if (!id) return;
 
     try {
       const response = await getComments(Number(id));
 
-      setComments(response.data);
+      setComments(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("댓글 조회 실패", error);
     }
   };
 
-  // 댓글 버튼
+  // 댓글 열기
+
   const handleComments = async () => {
-    const next = !showComments;
+    setShowComments((prev) => !prev);
 
-    setShowComments(next);
-
-    if (next) {
+    if (!showComments) {
       await fetchComments();
     }
   };
 
   // 댓글 작성
+
   const handleCommentSubmit = async () => {
     if (!id) return;
 
@@ -105,6 +116,7 @@ function PostDetail() {
   };
 
   // 댓글 삭제
+
   const handleDeleteComment = async (commentId: number) => {
     try {
       await deleteComment(commentId);
@@ -120,18 +132,20 @@ function PostDetail() {
   };
 
   // 좋아요
+
   const handleLike = async () => {
     if (!post) return;
 
-    const beforeLiked = liked;
-    const beforeLikes = likes;
+    const previousLiked = liked;
 
-    setLiked(!liked);
+    const previousLikes = likes;
 
-    setLikes(liked ? likes - 1 : likes + 1);
+    setLiked(!previousLiked);
+
+    setLikes(previousLiked ? previousLikes - 1 : previousLikes + 1);
 
     try {
-      if (beforeLiked) {
+      if (previousLiked) {
         await unlikePost(post.id);
       } else {
         await likePost(post.id);
@@ -139,12 +153,14 @@ function PostDetail() {
     } catch (error) {
       console.error("좋아요 실패", error);
 
-      setLiked(beforeLiked);
-      setLikes(beforeLikes);
+      setLiked(previousLiked);
+
+      setLikes(previousLikes);
     }
   };
 
   // 게시글 삭제
+
   const handleDelete = async () => {
     if (!post) return;
 
@@ -159,7 +175,7 @@ function PostDetail() {
 
       navigate("/home");
     } catch (error) {
-      console.error("게시글 삭제 실패", error);
+      console.error("삭제 실패", error);
 
       alert("게시글 삭제에 실패했습니다.");
     }
@@ -172,7 +188,14 @@ function PostDetail() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-10">
+    <main
+      className="
+        max-w-4xl
+        mx-auto
+        px-6
+        py-10
+      "
+    >
       <button
         onClick={() => navigate("/home")}
         className="
@@ -196,8 +219,6 @@ function PostDetail() {
           p-8
         "
       >
-        {/* 작성자 */}
-
         <div
           className="
             flex
@@ -206,7 +227,13 @@ function PostDetail() {
             mb-6
           "
         >
-          <div className="flex items-center gap-3">
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
             <img
               src={profileImage}
               alt="profile"
@@ -220,7 +247,12 @@ function PostDetail() {
             <div>
               <p className="font-semibold">{post.authorNickname}</p>
 
-              <p className="text-sm text-gray-500">
+              <p
+                className="
+                  text-sm
+                  text-gray-500
+                "
+              >
                 {new Date(post.createdAt).toLocaleString()}
               </p>
             </div>
@@ -239,13 +271,21 @@ function PostDetail() {
           )}
         </div>
 
-        <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
+        <h1
+          className="
+            text-3xl
+            font-bold
+            mb-6
+          "
+        >
+          {post.title}
+        </h1>
 
         <div
           className="
+            h-80
             bg-gray-100
             rounded-xl
-            h-80
             flex
             items-center
             justify-center
@@ -265,14 +305,12 @@ function PostDetail() {
 
         <p
           className="
-            leading-8
             text-gray-700
+            leading-8
           "
         >
           {post.content}
         </p>
-
-        {/* 좋아요 댓글 */}
 
         <div
           className="
@@ -311,16 +349,22 @@ function PostDetail() {
             "
           >
             <span className="material-symbols-outlined">chat_bubble</span>
-            댓글 {comments.length}
+            댓글 {post.commentCount ?? comments.length}
           </button>
         </div>
       </article>
 
-      {/* 댓글 영역 */}
-
       {showComments && (
         <section className="mt-10">
-          <h2 className="text-2xl font-bold mb-5">댓글</h2>
+          <h2
+            className="
+              text-2xl
+              font-bold
+              mb-5
+            "
+          >
+            댓글
+          </h2>
 
           <div
             className="
