@@ -1,87 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import profileImage from "../assets/profile.png";
+import { getPosts, likePost, unlikePost } from "../api/post";
 
 type Post = {
   id: number;
   category: string;
   title: string;
-  price: string;
+  price: number;
   description: string;
-  user: string;
-  likes: number;
-  comments: number;
-  time: string;
+  nickname: string;
+  profileImageUrl: string;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
 };
-const defaultPosts: Post[] = [
-  {
-    id: 1,
-    category: "음식",
-    title: "성수동 파스타 맛집 탐방",
-    price: "24,500원",
-    description:
-      "오랜만에 친구랑 성수동에서 점심 먹었어요. 분위기도 좋고 파스타 맛도 일품이었습니다.",
-    user: "민지킴",
-    likes: 42,
-    comments: 8,
-    time: "3시간 전",
-  },
-  {
-    id: 2,
-    category: "의류/쇼핑",
-    title: "무신사 스탠다드 기본 티셔츠",
-    price: "15,900원",
-    description: "여름 맞이 가성비 기본 티셔츠 구매했습니다.",
-    user: "준영디자인",
-    likes: 15,
-    comments: 3,
-    time: "5시간 전",
-  },
-  {
-    id: 3,
-    category: "생활용품",
-    title: "생활용품 구매",
-    price: "38,000원",
-    description: "필요했던 생활용품을 구매했습니다.",
-    user: "올리브러버",
-    likes: 56,
-    comments: 12,
-    time: "어제",
-  },
-  {
-    id: 4,
-    category: "문화/여가",
-    title: "영화 관람 후기",
-    price: "15,000원",
-    description: "오랜만에 영화관에 방문했어요.",
-    user: "해피무비",
-    likes: 128,
-    comments: 24,
-    time: "2일 전",
-  },
-  {
-    id: 5,
-    category: "기타",
-    title: "관리비 자동이체 완료",
-    price: "185,000원",
-    description: "이번 달 관리비가 생각보다 많이 나왔네요.",
-    user: "세이버",
-    likes: 4,
-    comments: 1,
-    time: "3일 전",
-  },
-  {
-    id: 6,
-    category: "기타",
-    title: "자격증 응시료 결제",
-    price: "45,000원",
-    description: "자기계발을 위한 투자!",
-    user: "챌린저",
-    likes: 210,
-    comments: 45,
-    time: "1주일 전",
-  },
-];
+
 function Home() {
   const navigate = useNavigate();
 
@@ -94,52 +28,64 @@ function Home() {
     "기타",
   ];
 
-  const [posts, setPosts] = useState<Post[]>(() => {
-    const savedPosts = localStorage.getItem("posts");
-
-    if (savedPosts) {
-      return JSON.parse(savedPosts) as Post[];
-    }
-
-    localStorage.setItem("posts", JSON.stringify(defaultPosts));
-    return defaultPosts;
-  });
-  const [likedPosts, setLikedPosts] = useState<number[]>(() => {
-    const savedLikes = localStorage.getItem("likedPosts");
-
-    return savedLikes ? (JSON.parse(savedLikes) as number[]) : [];
-  });
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("전체");
 
+  // 게시글 조회
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await getPosts();
+
+        setPosts(response.data.posts);
+      } catch (error) {
+        console.error("게시글 조회 실패", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   // 좋아요
-  const handleLike = (id: number) => {
-    let updatedPosts: Post[];
+  const handleLike = async (id: number) => {
+    const isLiked = likedPosts.includes(id);
 
-    if (likedPosts.includes(id)) {
-      updatedPosts = posts.map((post) =>
-        post.id === id ? { ...post, likes: post.likes - 1 } : post,
-      );
+    try {
+      if (isLiked) {
+        await unlikePost(id);
 
-      const updatedLikes = likedPosts.filter((postId) => postId !== id);
+        setLikedPosts((prev) => prev.filter((postId) => postId !== id));
 
-      setLikedPosts(updatedLikes);
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === id
+              ? {
+                  ...post,
+                  likeCount: post.likeCount - 1,
+                }
+              : post,
+          ),
+        );
+      } else {
+        await likePost(id);
 
-      localStorage.setItem("likedPosts", JSON.stringify(updatedLikes));
-    } else {
-      updatedPosts = posts.map((post) =>
-        post.id === id ? { ...post, likes: post.likes + 1 } : post,
-      );
+        setLikedPosts((prev) => [...prev, id]);
 
-      const updatedLikes = [...likedPosts, id];
-
-      setLikedPosts(updatedLikes);
-
-      localStorage.setItem("likedPosts", JSON.stringify(updatedLikes));
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === id
+              ? {
+                  ...post,
+                  likeCount: post.likeCount + 1,
+                }
+              : post,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("좋아요 처리 실패", error);
     }
-
-    setPosts(updatedPosts);
-
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
   };
 
   // 카테고리 필터
@@ -192,7 +138,7 @@ function Home() {
         md:grid-cols-2
         lg:grid-cols-3
         gap-6
-      "
+        "
       >
         {filteredPosts.map((post) => (
           <article
@@ -206,28 +152,23 @@ function Home() {
             hover:shadow-lg
             transition
             cursor-pointer
-          "
+            "
           >
             {/* 이미지 */}
 
             <div
               className="
-            aspect-video
-            bg-gray-100
-            flex
-            flex-col
-            items-center
-            justify-center
-            text-gray-400
-            relative
-          "
+              aspect-video
+              bg-gray-100
+              flex
+              flex-col
+              items-center
+              justify-center
+              text-gray-400
+              relative
+              "
             >
-              <span
-                className="
-              material-symbols-outlined
-              text-5xl
-            "
-              >
+              <span className="material-symbols-outlined text-5xl">
                 image_not_supported
               </span>
 
@@ -235,16 +176,16 @@ function Home() {
 
               <span
                 className="
-              absolute
-              right-2
-              top-2
-              bg-black/50
-              text-white
-              px-2
-              py-1
-              rounded
-              text-xs
-            "
+                absolute
+                right-2
+                top-2
+                bg-black/50
+                text-white
+                px-2
+                py-1
+                rounded
+                text-xs
+                "
               >
                 {post.category}
               </span>
@@ -255,23 +196,17 @@ function Home() {
             <div className="p-4">
               <h3 className="font-bold text-lg">{post.title}</h3>
 
-              <p
-                className="
-              text-primary
-              font-bold
-              mt-2
-            "
-              >
-                {post.price}
+              <p className="text-primary font-bold mt-2">
+                {post.price.toLocaleString()}원
               </p>
 
               <p
                 className="
-              text-gray-600
-              text-sm
-              mt-2
-              line-clamp-2
-            "
+                text-gray-600
+                text-sm
+                mt-2
+                line-clamp-2
+                "
               >
                 {post.description}
               </p>
@@ -289,101 +224,72 @@ function Home() {
               justify-between
               items-center
               bg-gray-50
-            "
+              "
             >
               <div className="flex items-center gap-2">
                 <img
-                  src={profileImage}
+                  src={post.profileImageUrl || profileImage}
                   className="w-6 h-6 rounded-full"
                   alt="profile"
                 />
 
-                <span>{post.user}</span>
+                <span>{post.nickname}</span>
               </div>
 
-              <div
-                className="
-              flex
-              gap-3
-              text-sm
-              text-gray-500
-            "
-              >
-                {/* 좋아요만 클릭 가능 */}
-
+              <div className="flex gap-3 text-sm text-gray-500">
                 <button
                   onClick={() => handleLike(post.id)}
-                  className="
-                  flex
-                  items-center
-                  gap-1
-                "
+                  className="flex items-center gap-1"
                 >
                   <span
                     className={`
-                  material-symbols-outlined
-                  text-[16px]
+                    material-symbols-outlined
+                    text-[16px]
 
-                  ${
-                    likedPosts.includes(post.id)
-                      ? "text-red-500"
-                      : "text-gray-400"
-                  }
-
-                `}
+                    ${
+                      likedPosts.includes(post.id)
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
+                    `}
                   >
                     favorite
                   </span>
 
-                  {post.likes}
+                  {post.likeCount}
                 </button>
 
-                {/* 댓글 표시만 */}
-
-                <span
-                  className="
-                flex
-                items-center
-                gap-1
-              "
-                >
-                  <span
-                    className="
-                  material-symbols-outlined
-                  text-[16px]
-                "
-                  >
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[16px]">
                     chat_bubble
                   </span>
 
-                  {post.comments}
+                  {post.commentCount}
                 </span>
-
-                <span>{post.time}</span>
               </div>
             </div>
           </article>
         ))}
       </div>
 
-      {/* 글쓰기 버튼 */}
+      {/* 글쓰기 */}
 
       <button
         onClick={() => navigate("/create")}
         className="
-          fixed
-          bottom-4
-          right-4
-          md:hidden
-          w-14
-          h-14
-          bg-primary
-          text-white
-          rounded-full
-          flex
-          items-center
-          justify-center
-          shadow-lg
+        fixed
+        bottom-4
+        right-4
+        md:hidden
+        w-14
+        h-14
+        bg-primary
+        text-white
+        rounded-full
+        flex
+        items-center
+        justify-center
+        shadow-lg
         "
       >
         <span className="material-symbols-outlined">add</span>
