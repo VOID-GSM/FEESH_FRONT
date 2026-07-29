@@ -8,24 +8,43 @@ const api = axios.create({
 });
 
 // 요청마다 토큰 자동 첨부
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
 
-// 401이면 로그인 페이지로
+    console.log("요청 URL:", config.url);
+    console.log("JWT 토큰:", token);
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// 인증 실패 처리
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+
+    console.log("API ERROR:", status);
+
+    if (status === 401 || status === 403) {
       localStorage.removeItem("accessToken");
+      localStorage.removeItem("email");
+      localStorage.removeItem("nickname");
+      localStorage.removeItem("likedPosts");
+
       window.location.href = "/login";
     }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
