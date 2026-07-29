@@ -1,240 +1,235 @@
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import profileImage from "../assets/profile.png";
-import { getPost, deletePost } from "../api/post";
-import type { PostDetailResponse } from "../api/post";
+import Header from "../components/Header";
+import { getPost, likePost, unlikePost } from "../api/post";
+import { getComments, createComment } from "../api/comment";
+
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  price: number;
+  authorNickname: string;
+  likeCount: number;
+  viewCount: number;
+  createdAt: string;
+}
+
+interface Comment {
+  commentId: number;
+  content: string;
+  authorNickname: string;
+  createdAt: string;
+}
 
 function PostDetail() {
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [post, setPost] = useState<PostDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [comment, setComment] = useState("");
   const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(0);
-  const [showComments, setShowComments] = useState(false);
 
- useEffect(() => {
-    // id가 바뀔 때 로딩 상태를 다시 켜기 위한 의도된 동작
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-
-    getPost(Number(id))
-      .then((res) => {
-        setPost(res.data);
-        setLikes(res.data.likeCount);
-      })
-      .catch(() => setPost(null))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  // 좋아요
-  const handleLike = () => {
-    if (liked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
-    }
-
-    setLiked(!liked);
-  };
-
-  // 게시글 삭제
-  // TODO: 백엔드 응답에 isMine 추가되면 아래 삭제 버튼 JSX 주석 해제하고 연결
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
-
-     // TODO: 백엔드 응답에 isMine 추가되면 위 삭제 버튼 JSX 주석 해제
-  void handleDelete;
-  
-    if (!confirmDelete) return;
+  const loadPost = useCallback(async () => {
+    if (!id) return;
 
     try {
-      await deletePost(Number(id));
-      alert("게시글이 삭제되었습니다.");
-      navigate("/home");
+      const response = await getPost(Number(id));
+      setPost(response.data);
     } catch (error) {
-      console.error(error);
-      alert("게시글 삭제에 실패했습니다.");
+      console.error("게시글 조회 실패", error);
+      alert("게시글을 불러오지 못했습니다.");
+    }
+  }, [id]);
+
+  const loadComments = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      const response = await getComments(Number(id));
+      setComments(response.data);
+    } catch (error) {
+      console.error("댓글 조회 실패", error);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    loadPost();
+    loadComments();
+  }, [loadPost, loadComments]);
+
+  const handleLike = async () => {
+    if (!id) return;
+
+    try {
+      if (liked) {
+        await unlikePost(Number(id));
+        setLiked(false);
+      } else {
+        await likePost(Number(id));
+        setLiked(true);
+      }
+
+      await loadPost();
+    } catch (error) {
+      console.error("좋아요 실패", error);
     }
   };
 
-  if (loading) {
-    return <main className="p-10 text-center">불러오는 중...</main>;
-  }
+  const handleComment = async () => {
+    if (!id) return;
+
+    if (!comment.trim()) {
+      alert("댓글을 입력해주세요.");
+      return;
+    }
+
+    try {
+      await createComment(Number(id), {
+        content: comment,
+      });
+
+      setComment("");
+
+      await loadComments();
+      await loadPost();
+    } catch (error) {
+      console.error("댓글 작성 실패", error);
+      alert("댓글 작성에 실패했습니다.");
+    }
+  };
 
   if (!post) {
     return (
-      <main className="p-10 text-center">존재하지 않는 게시글입니다.</main>
+      <div className="min-h-screen bg-[#f8f9ff]">
+        <Header />
+
+        <div className="flex justify-center items-center h-[80vh] text-gray-500 text-lg">
+          게시글을 불러오는 중...
+        </div>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-10">
-      {/* 뒤로가기 */}
-      <button
-        onClick={() => navigate("/home")}
-        className="
-        flex
-        items-center
-        gap-2
-        text-gray-600
-        hover:text-blue-700
-        mb-8
-        "
-      >
-        <span className="material-symbols-outlined">arrow_back</span>
-        뒤로가기
-      </button>
+    <div className="min-h-screen bg-[#f8f9ff]">
+      <Header />
 
-      <article className="bg-white rounded-2xl shadow-sm border p-8">
-        {/* 작성자 */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <img
-              src={profileImage}
-              alt="프로필"
-              className="w-12 h-12 rounded-full"
-            />
+      <main className="max-w-3xl mx-auto px-6 py-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 text-blue-700 hover:underline"
+        >
+          ← 뒤로가기
+        </button>
 
-            <div>
-              <p className="font-semibold">{post.authorNickname}</p>
+        <section className="bg-white rounded-xl shadow-sm p-8">
+          <div className="flex justify-between items-start">
+            <h1 className="text-3xl font-bold">{post.title}</h1>
 
-              <p className="text-sm text-gray-500">
-                {new Date(post.createdAt).toLocaleString()}
-              </p>
-            </div>
+            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+              {post.category}
+            </span>
           </div>
 
-          {/* 내 글 삭제 버튼 - 백엔드 응답에 isMine 없어 현재 비활성화 */}
-          {/* {post.isMine && (
-            <button
-              onClick={handleDelete}
-              className="
-              text-red-500
-              hover:text-red-700
-              font-semibold
-              "
-            >
-              삭제
-            </button>
-          )} */}
-        </div>
+          <p className="mt-4 text-2xl font-bold text-blue-700">
+            {post.price.toLocaleString()}원
+          </p>
 
-        {/* 제목 */}
-        <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
+          <p className="mt-6 whitespace-pre-line text-gray-700 leading-7">
+            {post.content}
+          </p>
 
-        {/* 이미지 */}
-        <div
-          className="
-          w-full
-          h-[360px]
-          rounded-xl
-          bg-gray-200
-          flex
-          items-center
-          justify-center
-          mb-8
-          "
-        >
-          <span
-            className="
-            material-symbols-outlined
-            text-7xl
-            text-gray-400
-            "
-          >
-            image
-          </span>
-        </div>
+          <div className="mt-8 text-sm text-gray-500 space-y-1">
+            <p>작성자 : {post.authorNickname}</p>
 
-        {/* 내용 */}
-        <div className="text-gray-700 leading-8">
-          <p>{post.content}</p>
-        </div>
+            <p>조회수 : {post.viewCount}</p>
 
-        {/* 조회수 (price 필드가 없어 임시로 대체) */}
-        <div className="bg-blue-50 rounded-xl p-5 mt-8">
-          <h3 className="font-bold text-lg mb-3">조회수</h3>
+            <p>좋아요 : {post.likeCount}</p>
 
-          <p className="font-bold text-blue-700">{post.viewCount}</p>
-        </div>
+            <p>작성일 : {new Date(post.createdAt).toLocaleString("ko-KR")}</p>
+          </div>
 
-        {/* 좋아요 댓글 */}
-        <div className="flex items-center gap-8 mt-8 pt-6 border-t">
           <button
             onClick={handleLike}
             className="
-            flex
-            items-center
-            gap-2
-            hover:text-red-500
+              mt-8
+              bg-blue-700
+              hover:bg-blue-800
+              text-white
+              px-6
+              py-3
+              rounded-lg
+              transition
             "
           >
-            <span
-              className={`
-              material-symbols-outlined
-
-              ${liked ? "text-red-500" : "text-gray-500"}
-
-              `}
-            >
-              favorite
-            </span>
-            좋아요 {likes}
+            {liked ? "❤️" : "🤍"} 좋아요 {post.likeCount}
           </button>
+        </section>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="
-            flex
-            items-center
-            gap-2
-            hover:text-blue-600
-            "
-          >
-            <span className="material-symbols-outlined">chat_bubble</span>
-            댓글
-          </button>
-        </div>
-      </article>
+        <section className="mt-8 bg-white rounded-xl shadow-sm p-8">
+          <h2 className="text-xl font-bold mb-6">댓글 ({comments.length})</h2>
 
-      {/* 댓글 */}
-      {showComments && (
-        <section className="mt-10">
-          <h2 className="text-2xl font-bold mb-5">댓글</h2>
-
-          <div className="bg-white rounded-2xl border p-5">
-            <textarea
+          <div className="flex gap-3 mb-6">
+            <input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
               placeholder="댓글을 입력하세요."
               className="
-                w-full
-                h-28
+                flex-1
                 border
                 rounded-lg
-                p-4
-                resize-none
-                "
+                px-4
+                py-3
+                outline-none
+                focus:ring-2
+                focus:ring-blue-500
+              "
             />
 
-            <div className="flex justify-end mt-4">
-              <button
-                className="
-                  bg-blue-700
-                  text-white
-                  px-6
-                  py-2
-                  rounded-lg
-                  "
-              >
-                등록
-              </button>
-            </div>
+            <button
+              onClick={handleComment}
+              className="
+                bg-blue-700
+                hover:bg-blue-800
+                text-white
+                px-6
+                rounded-lg
+                transition
+              "
+            >
+              작성
+            </button>
           </div>
+
+          {comments.length === 0 ? (
+            <div className="text-center text-gray-400 py-6">
+              아직 작성된 댓글이 없습니다.
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {comments.map((item) => (
+                <div key={item.commentId} className="border-b pb-4">
+                  <p className="text-gray-800 whitespace-pre-line">
+                    {item.content}
+                  </p>
+
+                  <div className="mt-2 flex justify-between text-sm text-gray-400">
+                    <span>{item.authorNickname}</span>
+
+                    <span>
+                      {new Date(item.createdAt).toLocaleString("ko-KR")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
-      )}
-    </main>
+      </main>
+    </div>
   );
 }
 
