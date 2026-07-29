@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
+
 import profileImage from "../assets/profile.png";
 
 import { deletePost, getPost, likePost, unlikePost } from "../api/post";
@@ -10,39 +12,37 @@ interface Post {
   id: number;
   title: string;
   content: string;
-  category?: string;
+  category: string;
   authorNickname: string;
   likeCount: number;
-  viewCount?: number;
-  commentCount?: number;
+  viewCount: number;
   createdAt: string;
   isMine?: boolean;
-  liked?: boolean;
 }
 
 interface Comment {
   commentId: number;
   content: string;
-  authorId?: number;
   authorNickname: string;
   createdAt: string;
 }
 
 function PostDetail() {
   const navigate = useNavigate();
+
   const { id } = useParams();
 
   const [post, setPost] = useState<Post | null>(null);
 
   const [liked, setLiked] = useState(false);
 
-  const [likes, setLikes] = useState(0);
+  const [likeCount, setLikeCount] = useState(0);
 
   const [showComments, setShowComments] = useState(false);
 
   const [comments, setComments] = useState<Comment[]>([]);
 
-  const [commentInput, setCommentInput] = useState("");
+  const [comment, setComment] = useState("");
 
   // 게시글 조회
 
@@ -55,9 +55,7 @@ function PostDetail() {
 
         setPost(response.data);
 
-        setLikes(response.data.likeCount ?? 0);
-
-        setLiked(response.data.liked ?? false);
+        setLikeCount(response.data.likeCount);
       } catch (error) {
         console.error("게시글 조회 실패", error);
       }
@@ -74,7 +72,7 @@ function PostDetail() {
     try {
       const response = await getComments(Number(id));
 
-      setComments(Array.isArray(response.data) ? response.data : []);
+      setComments(response.data);
     } catch (error) {
       console.error("댓글 조회 실패", error);
     }
@@ -83,35 +81,36 @@ function PostDetail() {
   // 댓글 열기
 
   const handleComments = async () => {
-    setShowComments((prev) => !prev);
+    const next = !showComments;
 
-    if (!showComments) {
+    setShowComments(next);
+
+    if (next) {
       await fetchComments();
     }
   };
 
   // 댓글 작성
 
-  const handleCommentSubmit = async () => {
+  const handleCreateComment = async () => {
     if (!id) return;
 
-    if (!commentInput.trim()) {
+    if (!comment.trim()) {
       alert("댓글을 입력해주세요.");
+
       return;
     }
 
     try {
       await createComment(Number(id), {
-        content: commentInput,
+        content: comment,
       });
 
-      setCommentInput("");
+      setComment("");
 
       await fetchComments();
     } catch (error) {
       console.error("댓글 작성 실패", error);
-
-      alert("댓글 작성에 실패했습니다.");
     }
   };
 
@@ -122,12 +121,10 @@ function PostDetail() {
       await deleteComment(commentId);
 
       setComments((prev) =>
-        prev.filter((comment) => comment.commentId !== commentId),
+        prev.filter((item) => item.commentId !== commentId),
       );
     } catch (error) {
       console.error("댓글 삭제 실패", error);
-
-      alert("댓글 삭제에 실패했습니다.");
     }
   };
 
@@ -136,26 +133,22 @@ function PostDetail() {
   const handleLike = async () => {
     if (!post) return;
 
-    const previousLiked = liked;
-
-    const previousLikes = likes;
-
-    setLiked(!previousLiked);
-
-    setLikes(previousLiked ? previousLikes - 1 : previousLikes + 1);
-
     try {
-      if (previousLiked) {
+      if (liked) {
         await unlikePost(post.id);
+
+        setLiked(false);
+
+        setLikeCount((prev) => prev - 1);
       } else {
         await likePost(post.id);
+
+        setLiked(true);
+
+        setLikeCount((prev) => prev + 1);
       }
     } catch (error) {
       console.error("좋아요 실패", error);
-
-      setLiked(previousLiked);
-
-      setLikes(previousLikes);
     }
   };
 
@@ -164,20 +157,18 @@ function PostDetail() {
   const handleDelete = async () => {
     if (!post) return;
 
-    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
-
-    if (!confirmDelete) return;
+    if (!window.confirm("게시글을 삭제하시겠습니까?")) {
+      return;
+    }
 
     try {
       await deletePost(post.id);
 
-      alert("게시글이 삭제되었습니다.");
+      alert("삭제되었습니다.");
 
       navigate("/home");
     } catch (error) {
       console.error("삭제 실패", error);
-
-      alert("게시글 삭제에 실패했습니다.");
     }
   };
 
@@ -188,255 +179,83 @@ function PostDetail() {
   }
 
   return (
-    <main
-      className="
-        max-w-4xl
-        mx-auto
-        px-6
-        py-10
-      "
-    >
+    <main className="max-w-4xl mx-auto px-6 py-10">
       <button
         onClick={() => navigate("/home")}
-        className="
-          flex
-          items-center
-          gap-2
-          mb-8
-          text-gray-600
-          hover:text-blue-700
-        "
+        className="flex gap-2 mb-8 text-gray-600"
       >
-        <span className="material-symbols-outlined">arrow_back</span>
-        뒤로가기
+        ← 뒤로가기
       </button>
 
-      <article
-        className="
-          bg-white
-          border
-          rounded-2xl
-          p-8
-        "
-      >
-        <div
-          className="
-            flex
-            justify-between
-            items-center
-            mb-6
-          "
-        >
-          <div
-            className="
-              flex
-              items-center
-              gap-3
-            "
-          >
+      <article className="bg-white border rounded-2xl p-8">
+        <div className="flex justify-between mb-6">
+          <div className="flex gap-3 items-center">
             <img
               src={profileImage}
+              className="w-12 h-12 rounded-full"
               alt="profile"
-              className="
-                w-12
-                h-12
-                rounded-full
-              "
             />
 
             <div>
               <p className="font-semibold">{post.authorNickname}</p>
 
-              <p
-                className="
-                  text-sm
-                  text-gray-500
-                "
-              >
+              <p className="text-sm text-gray-500">
                 {new Date(post.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
 
           {post.isMine && (
-            <button
-              onClick={handleDelete}
-              className="
-                text-red-500
-                hover:text-red-700
-              "
-            >
+            <button onClick={handleDelete} className="text-red-500">
               삭제
             </button>
           )}
         </div>
 
-        <h1
-          className="
-            text-3xl
-            font-bold
-            mb-6
-          "
-        >
-          {post.title}
-        </h1>
+        <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
 
-        <div
-          className="
-            h-80
-            bg-gray-100
-            rounded-xl
-            flex
-            items-center
-            justify-center
-            mb-8
-          "
-        >
-          <span
-            className="
-              material-symbols-outlined
-              text-7xl
-              text-gray-400
-            "
-          >
-            image
-          </span>
-        </div>
+        <p className="text-gray-700 leading-8">{post.content}</p>
 
-        <p
-          className="
-            text-gray-700
-            leading-8
-          "
-        >
-          {post.content}
-        </p>
+        <div className="flex gap-8 mt-8 border-t pt-6">
+          <button onClick={handleLike}>❤️ 좋아요 {likeCount}</button>
 
-        <div
-          className="
-            flex
-            gap-8
-            mt-8
-            pt-6
-            border-t
-          "
-        >
-          <button
-            onClick={handleLike}
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
-            <span
-              className={`
-                material-symbols-outlined
-                ${liked ? "text-red-500" : "text-gray-500"}
-              `}
-            >
-              favorite
-            </span>
-            좋아요 {likes}
-          </button>
-
-          <button
-            onClick={handleComments}
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
-            <span className="material-symbols-outlined">chat_bubble</span>
-            댓글 {post.commentCount ?? comments.length}
-          </button>
+          <button onClick={handleComments}>💬 댓글 {comments.length}</button>
         </div>
       </article>
 
       {showComments && (
         <section className="mt-10">
-          <h2
-            className="
-              text-2xl
-              font-bold
-              mb-5
-            "
-          >
-            댓글
-          </h2>
+          <h2 className="text-2xl font-bold mb-5">댓글</h2>
 
-          <div
-            className="
-              bg-white
-              border
-              rounded-xl
-              p-5
-            "
-          >
-            <textarea
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              placeholder="댓글을 입력하세요."
-              className="
-                w-full
-                h-28
-                border
-                rounded-lg
-                p-4
-                resize-none
-              "
-            />
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="w-full h-28 border rounded-lg p-4"
+            placeholder="댓글을 입력하세요."
+          />
 
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handleCommentSubmit}
-                className="
-                  bg-primary
-                  text-white
-                  px-6
-                  py-2
-                  rounded-lg
-                "
-              >
-                등록
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={handleCreateComment}
+            className="mt-3 bg-blue-700 text-white px-6 py-2 rounded-lg"
+          >
+            등록
+          </button>
 
           <div className="mt-5 space-y-3">
-            {comments.map((comment) => (
+            {comments.map((item) => (
               <div
-                key={comment.commentId}
-                className="
-                  bg-white
-                  border
-                  rounded-xl
-                  p-4
-                  flex
-                  justify-between
-                "
+                key={item.commentId}
+                className="border rounded-xl p-4 flex justify-between"
               >
                 <div>
-                  <p className="font-semibold">{comment.authorNickname}</p>
+                  <p className="font-semibold">{item.authorNickname}</p>
 
-                  <p>{comment.content}</p>
-
-                  <p
-                    className="
-                      text-xs
-                      text-gray-400
-                    "
-                  >
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </p>
+                  <p>{item.content}</p>
                 </div>
 
                 <button
-                  onClick={() => handleDeleteComment(comment.commentId)}
-                  className="
-                    text-red-500
-                  "
+                  onClick={() => handleDeleteComment(item.commentId)}
+                  className="text-red-500"
                 >
                   삭제
                 </button>
