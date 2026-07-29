@@ -67,6 +67,7 @@ export const signup = async (
 
   return response.data;
 };
+
 /**
  * 이메일 인증번호 발송
  */

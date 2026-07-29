@@ -35,14 +35,27 @@ export const likePost = (postId: number) => api.post(`/posts/${postId}/like`);
 
 export const unlikePost = (postId: number) => api.delete(`/posts/${postId}/like`);
 
+// TODO: 백엔드 createPost가 @RequestBody(JSON)만 받고 사진 파라미터가 없어서
+// 지금 FormData(사진 포함)로 보내면 바인딩이 안 될 수 있음. 사진 업로드 방식
+// (presigned URL / multipart 전환 / 우선 텍스트만) 정해지면 아래 다시 수정 필요.
 export const createPost = (payload: FormData) =>
-  api.post("/posts", payload, {
+  api.post("/posts/post", payload, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
 
-  export interface PostDetailResponse {
+export interface PostRequest {
+  title: string;
+  content: string;
+  category: string;
+  price: number;
+}
+
+export const updatePost = (postId: number, data: PostRequest) =>
+  api.patch(`/posts/${postId}`, data);
+
+export interface PostDetailResponse {
   id: number;
   title: string;
   content: string;
@@ -57,4 +70,3 @@ export const getPost = (postId: number) =>
   api.get<PostDetailResponse>(`/posts/${postId}`);
 
 export const deletePost = (postId: number) => api.delete(`/posts/${postId}`);
-  
