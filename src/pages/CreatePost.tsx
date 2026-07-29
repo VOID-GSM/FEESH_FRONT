@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import PhotoUpload from "../components/PhotoUpload";
 import { createPost } from "../api/post";
 
 function CreatePost() {
@@ -9,17 +8,16 @@ function CreatePost() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("food");
-  const [etcCategory, setEtcCategory] = useState("");
+  const [category, setCategory] = useState("FOOD");
+  const [price, setPrice] = useState<number>(0);
   const [loading, setLoading] = useState(false);
-  const [photos, setPhotos] = useState<File[]>([]);
 
   const categories = [
-    { id: "food", label: "음식" },
-    { id: "shopping", label: "의류/쇼핑" },
-    { id: "daily", label: "생활용품" },
-    { id: "culture", label: "문화/여가" },
-    { id: "etc", label: "기타" },
+    { id: "FOOD", label: "음식" },
+    { id: "SHOPPING", label: "의류/쇼핑" },
+    { id: "LIFE", label: "생활용품" },
+    { id: "CULTURE", label: "문화/여가" },
+    { id: "ETC", label: "기타" },
   ];
 
   // 작성 취소
@@ -31,9 +29,8 @@ function CreatePost() {
     if (confirmCancel) {
       setTitle("");
       setContent("");
-      setCategory("food");
-      setEtcCategory("");
-      setPhotos([]);
+      setCategory("FOOD");
+      setPrice(0);
 
       alert("작성 내용이 삭제되었습니다.");
     }
@@ -44,22 +41,22 @@ function CreatePost() {
     navigate("/home");
   };
 
-  // 게시글 등록
+  // 게시글 작성
   const handleSubmit = async () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
       return;
     }
 
-    if (category === "etc" && !etcCategory.trim()) {
-      alert("카테고리를 입력해주세요.");
+    if (!content.trim()) {
+      alert("내용을 입력해주세요.");
       return;
     }
 
-    const categoryName =
-      category === "etc"
-        ? etcCategory
-        : categories.find((item) => item.id === category)?.label;
+    if (price <= 0) {
+      alert("금액을 입력해주세요.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -67,8 +64,8 @@ function CreatePost() {
       await createPost({
         title,
         content,
-        category: categoryName,
-        photos,
+        category,
+        price,
       });
 
       alert("게시글이 등록되었습니다.");
@@ -96,8 +93,6 @@ function CreatePost() {
         mt-stack-lg
         "
       >
-        {/* 제목 + 뒤로가기 */}
-
         <div className="flex items-center gap-stack-sm mb-stack-md">
           <button
             onClick={handleBack}
@@ -134,6 +129,28 @@ function CreatePost() {
               />
             </div>
 
+            {/* 금액 */}
+
+            <div>
+              <label className="font-label-lg">금액</label>
+
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                placeholder="금액을 입력해주세요"
+                className="
+                w-full
+                px-4
+                py-3
+                mt-2
+                bg-surface-container-low
+                rounded-lg
+                outline-none
+                "
+              />
+            </div>
+
             {/* 카테고리 */}
 
             <div>
@@ -150,12 +167,13 @@ function CreatePost() {
                     py-2
                     rounded-full
                     border
-
+                    
                     ${
                       category === item.id
                         ? "bg-primary text-white border-primary"
                         : "border-gray-300"
                     }
+
                     `}
                   >
                     {item.label}
@@ -163,23 +181,6 @@ function CreatePost() {
                 ))}
               </div>
             </div>
-
-            {/* 기타 카테고리 */}
-
-            {category === "etc" && (
-              <input
-                value={etcCategory}
-                onChange={(e) => setEtcCategory(e.target.value)}
-                placeholder="카테고리를 입력하세요"
-                className="
-                w-full
-                px-4
-                py-3
-                bg-surface-container-low
-                rounded-lg
-                "
-              />
-            )}
 
             {/* 내용 */}
 
@@ -202,10 +203,6 @@ function CreatePost() {
                 "
               />
             </div>
-
-            {/* 사진 업로드 */}
-
-            <PhotoUpload photos={photos} setPhotos={setPhotos} />
 
             {/* 버튼 */}
 
