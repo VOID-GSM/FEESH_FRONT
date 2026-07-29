@@ -2,13 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import Logo from "../components/Logo";
+import { login } from "../api/authApi";
 
 function Login() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -16,8 +21,35 @@ function Login() {
       return;
     }
 
-    navigate("/home");
+    try {
+      setLoading(true);
+
+      const response = await login({
+        email,
+        password,
+      });
+
+      const { token, email: userEmail, nickname } = response.data;
+
+      // 로그인 정보 저장
+      localStorage.setItem("token", token);
+
+      localStorage.setItem("email", userEmail);
+
+      localStorage.setItem("nickname", nickname);
+
+      alert("로그인되었습니다.");
+
+      navigate("/home");
+    } catch (error) {
+      console.error("로그인 실패", error);
+
+      alert("이메일 또는 비밀번호를 확인해주세요.");
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div className="min-h-screen bg-[#f8f9ff] flex flex-col font-sans">
       {/* Header */}
@@ -63,13 +95,26 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="비밀번호를 입력하세요"
-                  className="w-full border rounded-lg px-4 py-3 pr-12"
+                  className="
+                    w-full
+                    border
+                    rounded-lg
+                    px-4
+                    py-3
+                    pr-12
+                  "
                 />
 
                 <button
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  className="
+                    absolute
+                    right-3
+                    top-1/2
+                    -translate-y-1/2
+                    text-gray-500
+                  "
                 >
                   {passwordVisible ? <Eye size={22} /> : <EyeOff size={22} />}
                 </button>
@@ -91,9 +136,18 @@ function Login() {
             {/* 로그인 버튼 */}
             <button
               type="submit"
-              className="w-full bg-blue-700 text-white rounded-lg py-3 hover:bg-blue-800"
+              disabled={loading}
+              className="
+                w-full
+                bg-blue-700
+                text-white
+                rounded-lg
+                py-3
+                hover:bg-blue-800
+                disabled:opacity-50
+              "
             >
-              로그인
+              {loading ? "로그인 중..." : "로그인"}
             </button>
           </form>
 
@@ -103,7 +157,14 @@ function Login() {
 
             <button
               onClick={() => navigate("/signup")}
-              className="w-full border border-blue-700 text-blue-700 rounded-lg py-3"
+              className="
+                w-full
+                border
+                border-blue-700
+                text-blue-700
+                rounded-lg
+                py-3
+              "
             >
               회원가입
             </button>
