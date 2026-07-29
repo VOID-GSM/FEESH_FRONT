@@ -4,6 +4,15 @@ import profileImage from "../assets/profile.png";
 import { getPosts, getCategories, likePost, unlikePost } from "../api/post";
 import type { PostSummary } from "../api/post";
 
+// 백엔드 Category enum(name) → 한글 라벨 매핑
+const CATEGORY_LABELS: Record<string, string> = {
+  FOOD: "음식",
+  FASHION_SHOPPING: "패션/쇼핑",
+  DAILY_NECESSITY: "생활용품",
+  CULTURE_LEISURE: "문화/여가",
+  ETC: "기타",
+};
+
 function Home() {
   const navigate = useNavigate();
 
@@ -17,8 +26,10 @@ function Home() {
   useEffect(() => {
     getCategories()
       .then((res) => {
-        // 백엔드 CategoryResponse 구조에 맞춰 배열 매핑
-        const names = res.data.map((c: { name: string }) => c.name);
+        // 백엔드가 enum name(FOOD 등)을 주므로 한글 라벨로 변환
+        const names = res.data.map(
+          (c: { name: string }) => CATEGORY_LABELS[c.name] || c.name,
+        );
         setCategories(["전체", ...names]);
       })
       .catch((err) => console.error("카테고리 불러오기 실패", err));
@@ -84,25 +95,29 @@ function Home() {
   };
 
   // 상대 시간 표시 (3시간 전, 어제 등)
-const formatTime = (iso: string) => {
-  // eslint-disable-next-line react-hooks/purity
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "방금 전";
-  if (diffMin < 60) return `${diffMin}분 전`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay === 1) return "어제";
-  if (diffDay < 7) return `${diffDay}일 전`;
-  return new Date(iso).toLocaleDateString();
-};
+  const formatTime = (iso: string) => {
+    // eslint-disable-next-line react-hooks/purity
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "방금 전";
+    if (diffMin < 60) return `${diffMin}분 전`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}시간 전`;
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay === 1) return "어제";
+    if (diffDay < 7) return `${diffDay}일 전`;
+    return new Date(iso).toLocaleDateString();
+  };
 
-  // 카테고리 필터
+  // 카테고리 필터 (post.category도 enum name이므로 라벨로 변환 후 비교)
   const filteredPosts =
     selectedCategory === "전체"
       ? posts
-      : posts.filter((post) => post.category === selectedCategory);
+      : posts.filter(
+          (post) =>
+            (CATEGORY_LABELS[post.category] || post.category) ===
+            selectedCategory,
+        );
 
   return (
     <main className="max-w-[1024px] mx-auto px-margin-tablet py-stack-lg">
@@ -212,7 +227,7 @@ const formatTime = (iso: string) => {
               text-xs
             "
               >
-                {post.category}
+                {CATEGORY_LABELS[post.category] || post.category}
               </span>
             </div>
 
