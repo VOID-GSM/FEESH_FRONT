@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PhotoUpload from "../components/PhotoUpload";
+import { createPost } from "../api/post";
 
 function CreatePost() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ function CreatePost() {
   };
 
   // 게시글 등록
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
       return;
@@ -60,72 +61,43 @@ function CreatePost() {
         ? etcCategory
         : categories.find((item) => item.id === category)?.label;
 
-    const newPost = {
-      // 게시글 고유 번호
-      id: Date.now(),
+    try {
+      setLoading(true);
 
-      // 카테고리
-      category: categoryName,
-
-      // 제목
-      title,
-
-      // 금액
-      price: "0원",
-
-      // 내용
-      description: content,
-
-      // 작성자
-      user: "민서",
-
-      // 사용자 구분
-      userId: "user1",
-
-      // 내가 작성한 글인지 확인
-      isMine: true,
-
-      // 좋아요
-      likes: 0,
-
-      // 댓글
-      comments: 0,
-
-      // 사진
-      photos,
-
-      // 작성 시간
-      createdAt: Date.now(),
-
-      // 표시용 시간
-      time: "방금 전",
-    };
-
-    // 기존 게시글 가져오기
-    const savedPosts = JSON.parse(localStorage.getItem("posts") || "[]");
-
-    // 새 게시글 추가
-    const updatedPosts = [newPost, ...savedPosts];
-
-    localStorage.setItem("posts", JSON.stringify(updatedPosts));
-
-    setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
+      await createPost({
+        title,
+        content,
+        category: categoryName,
+        photos,
+      });
 
       alert("게시글이 등록되었습니다.");
 
       navigate("/home");
-    }, 1000);
+    } catch (error) {
+      console.error("게시글 등록 실패:", error);
+
+      alert("게시글 등록에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="bg-surface text-on-surface min-h-screen pb-stack-lg">
       <Header />
 
-      <main className="max-w-[768px] mx-auto px-margin-mobile md:px-margin-tablet mt-stack-lg">
+      <main
+        className="
+        max-w-[768px]
+        mx-auto
+        px-margin-mobile
+        md:px-margin-tablet
+        mt-stack-lg
+        "
+      >
         {/* 제목 + 뒤로가기 */}
+
         <div className="flex items-center gap-stack-sm mb-stack-md">
           <button
             onClick={handleBack}
@@ -142,6 +114,7 @@ function CreatePost() {
         <div className="bg-surface-container-lowest p-stack-lg rounded-xl">
           <div className="space-y-stack-lg">
             {/* 제목 */}
+
             <div>
               <label className="font-label-lg">제목</label>
 
@@ -162,6 +135,7 @@ function CreatePost() {
             </div>
 
             {/* 카테고리 */}
+
             <div>
               <label className="font-label-lg">카테고리</label>
 
@@ -182,7 +156,6 @@ function CreatePost() {
                         ? "bg-primary text-white border-primary"
                         : "border-gray-300"
                     }
-
                     `}
                   >
                     {item.label}
@@ -192,22 +165,24 @@ function CreatePost() {
             </div>
 
             {/* 기타 카테고리 */}
+
             {category === "etc" && (
               <input
                 value={etcCategory}
                 onChange={(e) => setEtcCategory(e.target.value)}
                 placeholder="카테고리를 입력하세요"
                 className="
-                  w-full
-                  px-4
-                  py-3
-                  bg-surface-container-low
-                  rounded-lg
-                  "
+                w-full
+                px-4
+                py-3
+                bg-surface-container-low
+                rounded-lg
+                "
               />
             )}
 
             {/* 내용 */}
+
             <div>
               <label className="font-label-lg">내용</label>
 
@@ -229,9 +204,11 @@ function CreatePost() {
             </div>
 
             {/* 사진 업로드 */}
+
             <PhotoUpload photos={photos} setPhotos={setPhotos} />
 
             {/* 버튼 */}
+
             <div className="flex gap-3 pt-5 border-t">
               <button
                 onClick={handleCancel}
@@ -254,6 +231,7 @@ function CreatePost() {
                 rounded-lg
                 bg-primary
                 text-white
+                disabled:opacity-50
                 "
               >
                 {loading ? "등록 중..." : "등록"}
