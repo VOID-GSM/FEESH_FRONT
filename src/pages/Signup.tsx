@@ -71,7 +71,19 @@ function Signup() {
       startTimer();
     } catch (error) {
       console.error(error);
-      setEmailMessage("이메일 확인에 실패했습니다.");
+
+      if (axios.isAxiosError(error)) {
+        const errorCode = error.response?.data?.errorCode;
+        const message = error.response?.data?.message;
+
+        if (errorCode === "EMAIL_DUPLICATE") {
+          setEmailMessage("이미 가입된 이메일입니다.");
+        } else {
+          setEmailMessage(message || "이메일 확인에 실패했습니다.");
+        }
+      } else {
+        setEmailMessage("알 수 없는 오류가 발생했습니다.");
+      }
     }
   };
 
