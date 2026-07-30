@@ -2,7 +2,8 @@ name: React CD
 
 on:
   push:
-    branches: ['main']
+    branches:
+      - develop
 
 permissions:
   contents: read
@@ -28,6 +29,22 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: 학교 서버 SSH 배포
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+            docker compose down
+            docker compose up -d --build
+            docker compose ps
+
       - name: FEESH_FRONT CD Discord Notification (success)
         if: ${{ success() }}
         uses: sarisia/actions-status-discord@v1
@@ -48,4 +65,4 @@ jobs:
           title: '❗️ 실패 ❗️'
           description: '배포 실패'
           color: 16711680
-          username: 'FEESH-FRONT-bot' 
+          username: 'FEESH-FRONT-bot'

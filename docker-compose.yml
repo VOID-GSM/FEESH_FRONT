@@ -1,0 +1,7 @@
+services:
+  frontend:
+    build: .
+    container_name: feesh-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
