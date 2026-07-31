@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../components/Header";
@@ -95,10 +96,14 @@ function CreatePost() {
       alert("게시글이 등록되었습니다.");
 
       navigate("/home");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("게시글 등록 실패", error);
 
-      alert(error.response?.data?.message ?? "게시글 등록에 실패했습니다.");
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message ?? "게시글 등록에 실패했습니다.");
+      } else {
+        alert("게시글 등록에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }

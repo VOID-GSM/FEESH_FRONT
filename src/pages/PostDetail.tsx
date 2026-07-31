@@ -63,13 +63,12 @@ function PostDetail() {
       console.error("댓글 조회 실패", error);
     }
   }, [id]);
-
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPost();
+
     loadComments();
   }, [loadPost, loadComments]);
-
-  // 좋아요
   // 좋아요
   const handleLike = async () => {
     if (!post) return;
