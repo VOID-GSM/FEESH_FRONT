@@ -39,8 +39,8 @@ function Notification() {
       console.error("알림 조회 실패", error);
     }
   };
-
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotifications();
   }, []);
 
