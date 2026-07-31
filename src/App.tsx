@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -8,23 +8,12 @@ import CreatePost from "./pages/CreatePost";
 import Notification from "./pages/Notification";
 import PostDetail from "./pages/PostDetail";
 
-import Header from "./components/Header";
-
-function Layout() {
-  const location = useLocation();
-
-  const hideHeaderPaths = ["/", "/login", "/signup", "/create"];
-  const hideHeader = hideHeaderPaths.includes(location.pathname);
-
+function App() {
   return (
-    <>
-      {!hideHeader && <Header />}
-
+    <BrowserRouter>
       <Routes>
-        {/* 기본 페이지 */}
-        <Route path="/" element={<Login />} />
-
         {/* 로그인 */}
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
 
         {/* 회원가입 */}
@@ -33,26 +22,18 @@ function Layout() {
         {/* 홈 */}
         <Route path="/home" element={<Home />} />
 
-        {/* 프로필 */}
-        <Route path="/profile" element={<Profile />} />
-
         {/* 게시글 작성 */}
         <Route path="/create" element={<CreatePost />} />
 
-        {/* 알림 */}
-        <Route path="/notification" element={<Notification />} />
-
         {/* 게시글 상세 */}
         <Route path="/post/:id" element={<PostDetail />} />
-      </Routes>
-    </>
-  );
-}
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Layout />
+        {/* 프로필 */}
+        <Route path="/profile" element={<Profile />} />
+
+        {/* 알림 */}
+        <Route path="/notification" element={<Notification />} />
+      </Routes>
     </BrowserRouter>
   );
 }

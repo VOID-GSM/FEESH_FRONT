@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Header from "../components/Header";
-import PhotoUpload from "../components/PhotoUpload";
 import { createPost } from "../api/post";
 
 function CreatePost() {
@@ -9,77 +9,96 @@ function CreatePost() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("food");
+
+  const [price, setPrice] = useState("");
+
+  const [category, setCategory] = useState("FOOD");
   const [etcCategory, setEtcCategory] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const [photos, setPhotos] = useState<File[]>([]);
 
   const categories = [
-    { id: "food", label: "음식" },
-    { id: "shopping", label: "의류/쇼핑" },
-    { id: "daily", label: "생활용품" },
-    { id: "culture", label: "문화/여가" },
-    { id: "etc", label: "기타" },
+    {
+      id: "FOOD",
+      label: "음식",
+    },
+    {
+      id: "FASHION_SHOPPING",
+      label: "의류/쇼핑",
+    },
+    {
+      id: "DAILY_NECESSITY",
+      label: "생활용품",
+    },
+    {
+      id: "CULTURE_LEISURE",
+      label: "문화/여가",
+    },
+    {
+      id: "ETC",
+      label: "기타",
+    },
   ];
 
-  // 작성 취소
+  const changePrice = (amount: number) => {
+    const current = Number(price) || 0;
+
+    const next = current + amount;
+
+    setPrice(String(Math.max(0, next)));
+  };
+
   const handleCancel = () => {
-    const confirmCancel = window.confirm(
-      "작성 중인 글을 취소하시겠습니까?\n작성한 내용은 삭제됩니다.",
-    );
+    const confirmed = window.confirm("작성 중인 게시글을 취소하시겠습니까?");
 
-    if (confirmCancel) {
-      setTitle("");
-      setContent("");
-      setCategory("food");
-      setEtcCategory("");
-      setPhotos([]);
+    if (!confirmed) return;
 
-      alert("작성 내용이 삭제되었습니다.");
-    }
+    setTitle("");
+    setContent("");
+    setPrice("");
+    setCategory("FOOD");
+    setEtcCategory("");
   };
 
-  // 뒤로가기
-  const handleBack = () => {
-    navigate("/home");
-  };
-
-  // 게시글 등록
   const handleSubmit = async () => {
+    if (loading) return;
+
     if (!title.trim()) {
       alert("제목을 입력해주세요.");
       return;
     }
 
-    if (category === "etc" && !etcCategory.trim()) {
-      alert("카테고리를 입력해주세요.");
+    if (!content.trim()) {
+      alert("내용을 입력해주세요.");
       return;
     }
 
-    const categoryName =
-      category === "etc"
-        ? etcCategory
-        : categories.find((item) => item.id === category)?.label;
+    if (category === "ETC" && !etcCategory.trim()) {
+      alert("기타 카테고리를 입력해주세요.");
+      return;
+    }
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("content", content);
-    formData.append("category", categoryName ?? "");
-
-    photos.forEach((photo) => {
-      formData.append("photos", photo);
-    });
-
-    setLoading(true);
+    const requestData = {
+      title: title.trim(),
+      content: content.trim(),
+      category,
+      price: Number(price) || 0,
+    };
 
     try {
-      await createPost(formData);
+      setLoading(true);
+
+      const response = await createPost(requestData);
+
+      console.log("게시글 등록 성공", response.data);
 
       alert("게시글이 등록되었습니다.");
+
       navigate("/home");
-    } catch (error) {
-      console.error(error);
-      alert("게시글 등록에 실패했습니다. 다시 시도해주세요.");
+    } catch (error: any) {
+      console.error("게시글 등록 실패", error);
+
+      alert(error.response?.data?.message ?? "게시글 등록에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -89,54 +108,177 @@ function CreatePost() {
     <div className="bg-surface text-on-surface min-h-screen pb-stack-lg">
       <Header />
 
-      <main className="max-w-[768px] mx-auto px-margin-mobile md:px-margin-tablet mt-stack-lg">
-        {/* 제목 + 뒤로가기 */}
-        <div className="flex items-center gap-stack-sm mb-stack-md">
+      <main
+        className="
+          max-w-[768px]
+          mx-auto
+          px-6
+          mt-10
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+            mb-8
+          "
+        >
           <button
-            onClick={handleBack}
+            onClick={() => navigate(-1)}
             className="material-symbols-outlined text-primary"
           >
             arrow_back
           </button>
 
-          <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg">
-            소비 게시물 작성
-          </h1>
+          <h1 className="text-2xl font-bold">소비 게시물 작성</h1>
         </div>
 
-        <div className="bg-surface-container-lowest p-stack-lg rounded-xl">
-          <div className="space-y-stack-lg">
-            {/* 제목 */}
-            <div>
-              <label className="font-label-lg">제목</label>
+        <div
+          className="
+            bg-white
+            rounded-xl
+            p-8
+            space-y-8
+          "
+        >
+          {/* 제목 */}
 
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="게시물 제목을 입력해주세요"
-                className="
+          <div>
+            <label>제목</label>
+
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="게시물 제목을 입력해주세요"
+              className="
                 w-full
+                mt-2
                 px-4
                 py-3
-                mt-2
-                bg-surface-container-low
                 rounded-lg
-                outline-none
+                bg-gray-100
+              "
+            />
+          </div>
+
+          {/* 가격 */}
+
+          <div>
+            <label>가격</label>
+
+            <div
+              className="
+                flex
+                items-center
+                gap-4
+                mt-2
+              "
+            >
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="가격 입력"
+                className="
+                  flex-1
+                  h-14
+                  px-5
+                  rounded-lg
+                  border
+                  text-left
+                  text-lg
+                  appearance-none
+                  [&::-webkit-inner-spin-button]:appearance-none
+                  [&::-webkit-outer-spin-button]:appearance-none
                 "
               />
+
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  gap-2
+                  w-52
+                "
+              >
+                <button
+                  type="button"
+                  onClick={() => changePrice(500)}
+                  className="
+                    h-7
+                    rounded-lg
+                    bg-blue-100
+                    text-blue-700
+                    font-semibold
+                  "
+                >
+                  +500
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => changePrice(1000)}
+                  className="
+                    h-7
+                    rounded-lg
+                    bg-blue-100
+                    text-blue-700
+                    font-semibold
+                  "
+                >
+                  +1000
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => changePrice(-500)}
+                  className="
+                    h-7
+                    rounded-lg
+                    bg-gray-100
+                    text-gray-700
+                    font-semibold
+                  "
+                >
+                  -500
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => changePrice(-1000)}
+                  className="
+                    h-7
+                    rounded-lg
+                    bg-gray-100
+                    text-gray-700
+                    font-semibold
+                  "
+                >
+                  -1000
+                </button>
+              </div>
             </div>
+          </div>
+          {/* 카테고리 */}
 
-            {/* 카테고리 */}
-            <div>
-              <label className="font-label-lg">카테고리</label>
+          <div>
+            <label>카테고리</label>
 
-              <div className="flex flex-wrap gap-3 mt-3">
-                {categories.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setCategory(item.id)}
-                    className={`
+            <div
+              className="
+                flex
+                flex-wrap
+                gap-3
+                mt-3
+              "
+            >
+              {categories.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCategory(item.id)}
+                  className={`
                     px-4
                     py-2
                     rounded-full
@@ -144,86 +286,93 @@ function CreatePost() {
 
                     ${
                       category === item.id
-                        ? "bg-primary text-white border-primary"
-                        : "border-gray-300"
+                        ? "bg-blue-600 text-white"
+                        : "bg-white"
                     }
-
-                    `}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+                  `}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* 기타 카테고리 */}
-            {category === "etc" && (
-              <input
-                value={etcCategory}
-                onChange={(e) => setEtcCategory(e.target.value)}
-                placeholder="카테고리를 입력하세요"
-                className="
+          {/* 기타 카테고리 */}
+
+          {category === "ETC" && (
+            <input
+              value={etcCategory}
+              onChange={(e) => setEtcCategory(e.target.value)}
+              placeholder="기타 카테고리 입력"
+              className="
                   w-full
                   px-4
                   py-3
-                  bg-surface-container-low
                   rounded-lg
-                  "
-              />
-            )}
+                  bg-gray-100
+                "
+            />
+          )}
 
-            {/* 내용 */}
-            <div>
-              <label className="font-label-lg">내용</label>
+          {/* 내용 */}
 
-              <textarea
-                rows={10}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="내용을 작성해주세요."
-                className="
+          <div>
+            <label>내용</label>
+
+            <textarea
+              rows={10}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 작성해주세요."
+              className="
                 w-full
                 mt-2
                 px-4
                 py-3
-                bg-surface-container-low
                 rounded-lg
+                bg-gray-100
                 resize-none
-                "
-              />
-            </div>
+              "
+            />
+          </div>
 
-            {/* 사진 업로드 */}
-            <PhotoUpload photos={photos} setPhotos={setPhotos} />
+          {/* 버튼 */}
 
-            {/* 버튼 */}
-            <div className="flex gap-3 pt-5 border-t">
-              <button
-                onClick={handleCancel}
-                className="
+          <div
+            className="
+              flex
+              gap-3
+              pt-5
+              border-t
+            "
+          >
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="
                 flex-1
                 py-3
                 rounded-lg
-                border
-                "
-              >
-                취소
-              </button>
+                bg-gray-100
+              "
+            >
+              취소
+            </button>
 
-              <button
-                disabled={loading}
-                onClick={handleSubmit}
-                className="
+            <button
+              disabled={loading}
+              onClick={handleSubmit}
+              className="
                 flex-1
                 py-3
                 rounded-lg
-                bg-primary
+                bg-blue-600
                 text-white
-                "
-              >
-                {loading ? "등록 중..." : "등록"}
-              </button>
-            </div>
+                disabled:opacity-50
+              "
+            >
+              {loading ? "등록 중..." : "등록"}
+            </button>
           </div>
         </div>
       </main>

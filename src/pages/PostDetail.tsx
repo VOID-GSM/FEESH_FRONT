@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import Header from "../components/Header";
+
 import { getPost, likePost, unlikePost } from "../api/post";
 import { getComments, createComment } from "../api/comment";
 
@@ -8,12 +10,13 @@ interface Post {
   id: number;
   title: string;
   content: string;
-  category: string;
-  price: number;
-  authorNickname: string;
+  category: string | null;
+  price: number | null;
+  authorNickname: string | null;
   likeCount: number;
   viewCount: number;
-  createdAt: string;
+  createdAt: string | null;
+  liked: boolean;
 }
 
 interface Comment {
@@ -30,25 +33,31 @@ function PostDetail() {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [comment, setComment] = useState("");
-  const [liked, setLiked] = useState(false);
 
+  // 게시글 조회
   const loadPost = useCallback(async () => {
     if (!id) return;
 
     try {
       const response = await getPost(Number(id));
+
+      console.log("게시글:", response.data);
+
       setPost(response.data);
     } catch (error) {
       console.error("게시글 조회 실패", error);
-      alert("게시글을 불러오지 못했습니다.");
     }
   }, [id]);
 
+  // 댓글 조회
   const loadComments = useCallback(async () => {
     if (!id) return;
 
     try {
       const response = await getComments(Number(id));
+
+      console.log("댓글:", response.data);
+
       setComments(response.data);
     } catch (error) {
       console.error("댓글 조회 실패", error);
@@ -60,24 +69,29 @@ function PostDetail() {
     loadComments();
   }, [loadPost, loadComments]);
 
+  // 좋아요
   const handleLike = async () => {
-    if (!id) return;
+    if (!post) return;
 
     try {
-      if (liked) {
-        await unlikePost(Number(id));
-        setLiked(false);
+      let response;
+
+      if (post.liked) {
+        response = await unlikePost(post.id);
       } else {
-        await likePost(Number(id));
-        setLiked(true);
+        response = await likePost(post.id);
       }
 
+      console.log("좋아요 응답:", response.data);
+
+      // 서버 기준 최신 데이터 다시 가져오기
       await loadPost();
     } catch (error) {
       console.error("좋아요 실패", error);
     }
   };
 
+  // 댓글 작성
   const handleComment = async () => {
     if (!id) return;
 
@@ -94,10 +108,8 @@ function PostDetail() {
       setComment("");
 
       await loadComments();
-      await loadPost();
     } catch (error) {
       console.error("댓글 작성 실패", error);
-      alert("댓글 작성에 실패했습니다.");
     }
   };
 
@@ -106,8 +118,8 @@ function PostDetail() {
       <div className="min-h-screen bg-[#f8f9ff]">
         <Header />
 
-        <div className="flex justify-center items-center h-[80vh] text-gray-500 text-lg">
-          게시글을 불러오는 중...
+        <div className="flex justify-center items-center h-[80vh] text-gray-500">
+          게시글 불러오는 중...
         </div>
       </div>
     );
@@ -118,115 +130,105 @@ function PostDetail() {
       <Header />
 
       <main className="max-w-3xl mx-auto px-6 py-10">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-6 text-blue-700 hover:underline"
-        >
+        <button onClick={() => navigate(-1)} className="mb-6 text-blue-700">
           ← 뒤로가기
         </button>
 
-        <section className="bg-white rounded-xl shadow-sm p-8">
-          <div className="flex justify-between items-start">
-            <h1 className="text-3xl font-bold">{post.title}</h1>
+        <section className="bg-white rounded-xl shadow-sm">
+          <div className="p-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-bold">{post.title}</h1>
 
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-              {post.category}
-            </span>
+              <span className="text-blue-600">{post.category ?? "기타"}</span>
+            </div>
+
+            <p className="mt-5 text-2xl font-bold text-blue-700">
+              {post.price ? `${post.price.toLocaleString()}원` : "가격 미정"}
+            </p>
+
+            <p className="mt-6 whitespace-pre-line text-gray-700">
+              {post.content}
+            </p>
+
+            <div className="mt-8 flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                <p>작성자 : {post.authorNickname ?? "알 수 없음"}</p>
+
+                <p>조회수 : {post.viewCount}</p>
+              </div>
+
+              <button onClick={handleLike} className="flex items-center gap-2">
+                <svg
+                  className="w-7 h-7"
+                  viewBox="0 0 24 24"
+                  fill={post.liked ? "#ef4444" : "none"}
+                  stroke={post.liked ? "#ef4444" : "#9ca3af"}
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="
+                    M21 8.25
+                    c0-2.485-2.099-4.5-4.688-4.5
+                    -1.935 0-3.597 1.126-4.312 2.733
+                    C11.285 4.876 9.623 3.75 7.688 3.75
+                    5.099 3.75 3 5.765 3 8.25
+                    c0 7.22 9 11.25 9 11.25
+                    s9-4.03 9-11.25
+                    Z
+                    "
+                  />
+                </svg>
+
+                <span>{post.likeCount ?? 0}</span>
+              </button>
+            </div>
           </div>
-
-          <p className="mt-4 text-2xl font-bold text-blue-700">
-            {post.price.toLocaleString()}원
-          </p>
-
-          <p className="mt-6 whitespace-pre-line text-gray-700 leading-7">
-            {post.content}
-          </p>
-
-          <div className="mt-8 text-sm text-gray-500 space-y-1">
-            <p>작성자 : {post.authorNickname}</p>
-
-            <p>조회수 : {post.viewCount}</p>
-
-            <p>좋아요 : {post.likeCount}</p>
-
-            <p>작성일 : {new Date(post.createdAt).toLocaleString("ko-KR")}</p>
-          </div>
-
-          <button
-            onClick={handleLike}
-            className="
-              mt-8
-              bg-blue-700
-              hover:bg-blue-800
-              text-white
-              px-6
-              py-3
-              rounded-lg
-              transition
-            "
-          >
-            {liked ? "❤️" : "🤍"} 좋아요 {post.likeCount}
-          </button>
         </section>
 
-        <section className="mt-8 bg-white rounded-xl shadow-sm p-8">
-          <h2 className="text-xl font-bold mb-6">댓글 ({comments.length})</h2>
+        <section className="mt-8 bg-white rounded-xl p-8">
+          <h2 className="text-xl font-bold mb-5">댓글 ({comments.length})</h2>
 
-          <div className="flex gap-3 mb-6">
+          <div className="flex gap-3">
             <input
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="댓글을 입력하세요."
               className="
-                flex-1
-                border
-                rounded-lg
-                px-4
-                py-3
-                outline-none
-                focus:ring-2
-                focus:ring-blue-500
+              flex-1
+              h-14
+              border
+              rounded-lg
+              px-4
               "
             />
 
             <button
               onClick={handleComment}
               className="
-                bg-blue-700
-                hover:bg-blue-800
-                text-white
-                px-6
-                rounded-lg
-                transition
+              h-14
+              px-6
+              rounded-lg
+              bg-blue-700
+              text-white
               "
             >
               작성
             </button>
           </div>
 
-          {comments.length === 0 ? (
-            <div className="text-center text-gray-400 py-6">
-              아직 작성된 댓글이 없습니다.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {comments.map((item) => (
-                <div key={item.commentId} className="border-b pb-4">
-                  <p className="text-gray-800 whitespace-pre-line">
-                    {item.content}
-                  </p>
+          <div className="mt-6 space-y-5">
+            {comments.map((item) => (
+              <div key={item.commentId} className="border-b pb-4">
+                <p>{item.content}</p>
 
-                  <div className="mt-2 flex justify-between text-sm text-gray-400">
-                    <span>{item.authorNickname}</span>
-
-                    <span>
-                      {new Date(item.createdAt).toLocaleString("ko-KR")}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                <span className="text-sm text-gray-400">
+                  {item.authorNickname}
+                </span>
+              </div>
+            ))}
+          </div>
         </section>
       </main>
     </div>
