@@ -27,12 +27,10 @@ export interface PostSummary {
 
   createdAt: string | null;
 
-  // 게시글 이미지
-  imageUrls?: string[];
-
-  // 현재 로그인 사용자의 좋아요 여부
   liked: boolean;
 }
+
+// 게시글 목록 응답
 
 export interface PostListResponse {
   posts: PostSummary[];
@@ -83,6 +81,7 @@ export const unlikePost = (postId: number) =>
 
 // ======================
 // 게시글 작성
+// JSON 방식
 // ======================
 
 export interface PostRequest {
@@ -93,32 +92,10 @@ export interface PostRequest {
   category: string;
 
   price: number;
-
-  images?: File[];
 }
 
 export const createPost = (data: PostRequest) => {
-  const formData = new FormData();
-
-  formData.append("title", data.title);
-
-  formData.append("content", data.content);
-
-  formData.append("category", data.category);
-
-  formData.append("price", String(data.price));
-
-  if (data.images) {
-    data.images.forEach((image) => {
-      formData.append("images", image);
-    });
-  }
-
-  return api.post("/posts/post", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  return api.post("/posts/post", data);
 };
 
 // ======================
@@ -144,11 +121,7 @@ export interface PostDetailResponse {
 
   createdAt: string | null;
 
-  // 좋아요 여부
   liked: boolean;
-
-  // 이미지 목록
-  imageUrls: string[];
 }
 
 export const getPost = (postId: number) =>
