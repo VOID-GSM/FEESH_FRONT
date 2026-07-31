@@ -70,22 +70,38 @@ function PostDetail() {
   }, [loadPost, loadComments]);
 
   // 좋아요
+  // 좋아요
   const handleLike = async () => {
     if (!post) return;
 
     try {
-      let response;
-
       if (post.liked) {
-        response = await unlikePost(post.id);
+        // 좋아요 취소
+        await unlikePost(post.id);
+
+        setPost((prev) =>
+          prev
+            ? {
+                ...prev,
+                liked: false,
+                likeCount: Math.max(0, prev.likeCount - 1),
+              }
+            : prev,
+        );
       } else {
-        response = await likePost(post.id);
+        // 좋아요 추가
+        await likePost(post.id);
+
+        setPost((prev) =>
+          prev
+            ? {
+                ...prev,
+                liked: true,
+                likeCount: prev.likeCount + 1,
+              }
+            : prev,
+        );
       }
-
-      console.log("좋아요 응답:", response.data);
-
-      // 서버 기준 최신 데이터 다시 가져오기
-      await loadPost();
     } catch (error) {
       console.error("좋아요 실패", error);
     }
@@ -181,7 +197,7 @@ function PostDetail() {
                   />
                 </svg>
 
-                <span>{post.likeCount ?? 0}</span>
+                <span>{post.likeCount}</span>
               </button>
             </div>
           </div>
