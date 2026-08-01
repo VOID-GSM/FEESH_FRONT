@@ -10,6 +10,7 @@ interface Post {
   title: string;
   content: string;
   category: string;
+  authorId: number;
   authorNickname: string;
   likeCount: number;
   viewCount: number;
@@ -17,10 +18,29 @@ interface Post {
   liked?: boolean;
 }
 
+// JWT에서 로그인한 사용자 ID 가져오기
+const getUserIdFromToken = () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    return Number(payload.sub);
+  } catch (error) {
+    console.error("토큰 해석 실패", error);
+
+    return null;
+  }
+};
+
 function PostDetail() {
   const navigate = useNavigate();
 
   const { id } = useParams();
+
+  const userId = getUserIdFromToken();
 
   const [post, setPost] = useState<Post | null>(null);
 
@@ -37,6 +57,9 @@ function PostDetail() {
     const fetchPost = async () => {
       try {
         const response = await getPost(Number(id));
+
+        console.log("게시글 상세:", response.data);
+        console.log("현재 사용자 ID:", userId);
 
         setPost(response.data);
 
@@ -97,14 +120,7 @@ function PostDetail() {
 
   if (!post) {
     return (
-      <main
-        className="
-        p-10
-        text-center
-        "
-      >
-        존재하지 않는 게시글입니다.
-      </main>
+      <main className="p-10 text-center">존재하지 않는 게시글입니다.</main>
     );
   }
 
@@ -117,8 +133,6 @@ function PostDetail() {
       py-10
       "
     >
-      {/* 뒤로가기 */}
-
       <button
         onClick={() => navigate("/home")}
         className="
@@ -129,13 +143,7 @@ function PostDetail() {
         mb-8
         "
       >
-        <span
-          className="
-          material-symbols-outlined
-          "
-        >
-          arrow_back
-        </span>
+        <span className="material-symbols-outlined">arrow_back</span>
         뒤로가기
       </button>
 
@@ -148,8 +156,6 @@ function PostDetail() {
         p-8
         "
       >
-        {/* 작성자 */}
-
         <div
           className="
           flex
@@ -176,37 +182,27 @@ function PostDetail() {
             />
 
             <div>
-              <p
-                className="
-                font-semibold
-                "
-              >
-                {post.authorNickname}
-              </p>
+              <p className="font-semibold">{post.authorNickname}</p>
 
-              <p
-                className="
-                text-sm
-                text-gray-500
-                "
-              >
+              <p className="text-sm text-gray-500">
                 {new Date(post.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
 
-          <button
-            onClick={handleDelete}
-            className="
-            text-red-500
-            font-semibold
-            "
-          >
-            삭제
-          </button>
+          {/* 내 게시글만 삭제 버튼 표시 */}
+          {post.authorId === userId && (
+            <button
+              onClick={handleDelete}
+              className="
+              text-red-500
+              font-semibold
+              "
+            >
+              삭제
+            </button>
+          )}
         </div>
-
-        {/* 제목 */}
 
         <h1
           className="
@@ -217,8 +213,6 @@ function PostDetail() {
         >
           {post.title}
         </h1>
-
-        {/* 카테고리 */}
 
         <span
           className="
@@ -234,8 +228,6 @@ function PostDetail() {
         >
           {post.category}
         </span>
-
-        {/* 이미지 영역 */}
 
         <div
           className="
@@ -260,8 +252,6 @@ function PostDetail() {
           </span>
         </div>
 
-        {/* 내용 */}
-
         <div
           className="
           text-gray-700
@@ -270,8 +260,6 @@ function PostDetail() {
         >
           {post.content}
         </div>
-
-        {/* 좋아요 / 댓글 */}
 
         <div
           className="
@@ -291,31 +279,6 @@ function PostDetail() {
             gap-2
             "
           >
-            <svg
-              className="
-              w-6
-              h-6
-              "
-              viewBox="0 0 24 24"
-              fill={liked ? "#ef4444" : "none"}
-              stroke={liked ? "#ef4444" : "#6b7280"}
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="
-                M21 8.25
-                c0-2.485-2.099-4.5-4.688-4.5
-                -1.935 0-3.597 1.126-4.312 2.733
-                C11.285 4.876 9.623 3.75 7.688 3.75
-                5.099 3.75 3 5.765 3 8.25
-                c0 7.22 9 11.25 9 11.25
-                s9-4.03 9-11.25
-                Z
-                "
-              />
-            </svg>
             좋아요 {Math.max(likeCount, 0)}
           </button>
 
@@ -327,26 +290,13 @@ function PostDetail() {
             gap-2
             "
           >
-            <span
-              className="
-              material-symbols-outlined
-              "
-            >
-              chat_bubble
-            </span>
             댓글
           </button>
         </div>
       </article>
 
-      {/* 댓글 영역 */}
-
       {showComments && (
-        <section
-          className="
-          mt-10
-          "
-        >
+        <section className="mt-10">
           <h2
             className="
             text-2xl
