@@ -1,9 +1,10 @@
 name: React CD
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_run:
+    workflows: ['React CI']
+    types: [completed]
+    branches: ['develop']
 
 permissions:
   contents: read
@@ -11,11 +12,14 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Node 20 설정
         uses: actions/setup-node@v4
@@ -65,4 +69,4 @@ jobs:
           title: '❗️ 실패 ❗️'
           description: '배포 실패'
           color: 16711680
-          username: 'FEESH-FRONT-bot'
+          username: 'FEESH-FRONT-bot' 
