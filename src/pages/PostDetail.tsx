@@ -1,252 +1,398 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import Header from "../components/Header";
+import profileImage from "../assets/profile.png";
 
-import { getPost, likePost, unlikePost } from "../api/post";
-import { getComments, createComment } from "../api/comment";
+import { deletePost, getPost, likePost, unlikePost } from "../api/post";
 
 interface Post {
   id: number;
   title: string;
   content: string;
-  category: string | null;
-  price: number | null;
-  authorNickname: string | null;
+  category: string;
+  authorNickname: string;
   likeCount: number;
   viewCount: number;
-  createdAt: string | null;
-  liked: boolean;
-}
-
-interface Comment {
-  commentId: number;
-  content: string;
-  authorNickname: string;
   createdAt: string;
+  liked?: boolean;
 }
 
 function PostDetail() {
-  const { id } = useParams();
   const navigate = useNavigate();
 
+  const { id } = useParams();
+
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [comment, setComment] = useState("");
 
-  // 게시글 조회
-  const loadPost = useCallback(async () => {
-    if (!id) return;
+  const [liked, setLiked] = useState(false);
 
-    try {
-      const response = await getPost(Number(id));
+  const [likeCount, setLikeCount] = useState(0);
 
-      console.log("게시글:", response.data);
+  const [showComments, setShowComments] = useState(false);
 
-      setPost(response.data);
-    } catch (error) {
-      console.error("게시글 조회 실패", error);
-    }
-  }, [id]);
-
-  // 댓글 조회
-  const loadComments = useCallback(async () => {
-    if (!id) return;
-
-    try {
-      const response = await getComments(Number(id));
-
-      console.log("댓글:", response.data);
-
-      setComments(response.data);
-    } catch (error) {
-      console.error("댓글 조회 실패", error);
-    }
-  }, [id]);
+  // 게시글 상세 조회
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadPost();
+    if (!id) return;
 
-    loadComments();
-  }, [loadPost, loadComments]);
+    const fetchPost = async () => {
+      try {
+        const response = await getPost(Number(id));
+
+        setPost(response.data);
+
+        setLiked(response.data.liked ?? false);
+
+        setLikeCount(Math.max(response.data.likeCount ?? 0, 0));
+      } catch (error) {
+        console.error("게시글 조회 실패", error);
+      }
+    };
+
+    fetchPost();
+  }, [id]);
+
   // 좋아요
   const handleLike = async () => {
     if (!post) return;
 
     try {
-      if (post.liked) {
-        // 좋아요 취소
+      if (liked) {
         await unlikePost(post.id);
 
-        setPost((prev) =>
-          prev
-            ? {
-                ...prev,
-                liked: false,
-                likeCount: Math.max(0, prev.likeCount - 1),
-              }
-            : prev,
-        );
+        setLiked(false);
+
+        setLikeCount((prev) => Math.max(prev - 1, 0));
       } else {
-        // 좋아요 추가
         await likePost(post.id);
 
-        setPost((prev) =>
-          prev
-            ? {
-                ...prev,
-                liked: true,
-                likeCount: prev.likeCount + 1,
-              }
-            : prev,
-        );
+        setLiked(true);
+
+        setLikeCount((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("좋아요 실패", error);
+      console.error("좋아요 처리 실패", error);
     }
   };
 
-  // 댓글 작성
-  const handleComment = async () => {
-    if (!id) return;
+  // 삭제
+  const handleDelete = async () => {
+    if (!post) return;
 
-    if (!comment.trim()) {
-      alert("댓글을 입력해주세요.");
-      return;
-    }
+    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
+
+    if (!confirmDelete) return;
 
     try {
-      await createComment(Number(id), {
-        content: comment,
-      });
+      await deletePost(post.id);
 
-      setComment("");
+      alert("게시글이 삭제되었습니다.");
 
-      await loadComments();
+      navigate("/home");
     } catch (error) {
-      console.error("댓글 작성 실패", error);
+      console.error("삭제 실패", error);
+
+      alert("삭제에 실패했습니다.");
     }
   };
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#f8f9ff]">
-        <Header />
-
-        <div className="flex justify-center items-center h-[80vh] text-gray-500">
-          게시글 불러오는 중...
-        </div>
-      </div>
+      <main
+        className="
+        p-10
+        text-center
+        "
+      >
+        존재하지 않는 게시글입니다.
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff]">
-      <Header />
+    <main
+      className="
+      max-w-4xl
+      mx-auto
+      px-6
+      py-10
+      "
+    >
+      {/* 뒤로가기 */}
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
-        <button onClick={() => navigate(-1)} className="mb-6 text-blue-700">
-          ← 뒤로가기
-        </button>
+      <button
+        onClick={() => navigate("/home")}
+        className="
+        flex
+        items-center
+        gap-2
+        text-gray-600
+        mb-8
+        "
+      >
+        <span
+          className="
+          material-symbols-outlined
+          "
+        >
+          arrow_back
+        </span>
+        뒤로가기
+      </button>
 
-        <section className="bg-white rounded-xl shadow-sm">
-          <div className="p-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold">{post.title}</h1>
+      <article
+        className="
+        bg-white
+        rounded-2xl
+        shadow-sm
+        border
+        p-8
+        "
+      >
+        {/* 작성자 */}
 
-              <span className="text-blue-600">{post.category ?? "기타"}</span>
-            </div>
+        <div
+          className="
+          flex
+          justify-between
+          items-center
+          mb-6
+          "
+        >
+          <div
+            className="
+            flex
+            items-center
+            gap-3
+            "
+          >
+            <img
+              src={profileImage}
+              alt="프로필"
+              className="
+              w-12
+              h-12
+              rounded-full
+              "
+            />
 
-            <p className="mt-5 text-2xl font-bold text-blue-700">
-              {post.price ? `${post.price.toLocaleString()}원` : "가격 미정"}
-            </p>
+            <div>
+              <p
+                className="
+                font-semibold
+                "
+              >
+                {post.authorNickname}
+              </p>
 
-            <p className="mt-6 whitespace-pre-line text-gray-700">
-              {post.content}
-            </p>
-
-            <div className="mt-8 flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                <p>작성자 : {post.authorNickname ?? "알 수 없음"}</p>
-
-                <p>조회수 : {post.viewCount}</p>
-              </div>
-
-              <button onClick={handleLike} className="flex items-center gap-2">
-                <svg
-                  className="w-7 h-7"
-                  viewBox="0 0 24 24"
-                  fill={post.liked ? "#ef4444" : "none"}
-                  stroke={post.liked ? "#ef4444" : "#9ca3af"}
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="
-                    M21 8.25
-                    c0-2.485-2.099-4.5-4.688-4.5
-                    -1.935 0-3.597 1.126-4.312 2.733
-                    C11.285 4.876 9.623 3.75 7.688 3.75
-                    5.099 3.75 3 5.765 3 8.25
-                    c0 7.22 9 11.25 9 11.25
-                    s9-4.03 9-11.25
-                    Z
-                    "
-                  />
-                </svg>
-
-                <span>{post.likeCount}</span>
-              </button>
+              <p
+                className="
+                text-sm
+                text-gray-500
+                "
+              >
+                {new Date(post.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
-        </section>
 
-        <section className="mt-8 bg-white rounded-xl p-8">
-          <h2 className="text-xl font-bold mb-5">댓글 ({comments.length})</h2>
+          <button
+            onClick={handleDelete}
+            className="
+            text-red-500
+            font-semibold
+            "
+          >
+            삭제
+          </button>
+        </div>
 
-          <div className="flex gap-3">
-            <input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
+        {/* 제목 */}
+
+        <h1
+          className="
+          text-3xl
+          font-bold
+          mb-6
+          "
+        >
+          {post.title}
+        </h1>
+
+        {/* 카테고리 */}
+
+        <span
+          className="
+          inline-block
+          bg-primary
+          text-white
+          px-3
+          py-1
+          rounded-full
+          text-sm
+          mb-6
+          "
+        >
+          {post.category}
+        </span>
+
+        {/* 이미지 영역 */}
+
+        <div
+          className="
+          w-full
+          h-[360px]
+          rounded-xl
+          bg-gray-100
+          flex
+          items-center
+          justify-center
+          mb-8
+          "
+        >
+          <span
+            className="
+            material-symbols-outlined
+            text-7xl
+            text-gray-400
+            "
+          >
+            image
+          </span>
+        </div>
+
+        {/* 내용 */}
+
+        <div
+          className="
+          text-gray-700
+          leading-8
+          "
+        >
+          {post.content}
+        </div>
+
+        {/* 좋아요 / 댓글 */}
+
+        <div
+          className="
+          flex
+          items-center
+          gap-8
+          mt-8
+          pt-6
+          border-t
+          "
+        >
+          <button
+            onClick={handleLike}
+            className="
+            flex
+            items-center
+            gap-2
+            "
+          >
+            <svg
+              className="
+              w-6
+              h-6
+              "
+              viewBox="0 0 24 24"
+              fill={liked ? "#ef4444" : "none"}
+              stroke={liked ? "#ef4444" : "#6b7280"}
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="
+                M21 8.25
+                c0-2.485-2.099-4.5-4.688-4.5
+                -1.935 0-3.597 1.126-4.312 2.733
+                C11.285 4.876 9.623 3.75 7.688 3.75
+                5.099 3.75 3 5.765 3 8.25
+                c0 7.22 9 11.25 9 11.25
+                s9-4.03 9-11.25
+                Z
+                "
+              />
+            </svg>
+            좋아요 {Math.max(likeCount, 0)}
+          </button>
+
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="
+            flex
+            items-center
+            gap-2
+            "
+          >
+            <span
+              className="
+              material-symbols-outlined
+              "
+            >
+              chat_bubble
+            </span>
+            댓글
+          </button>
+        </div>
+      </article>
+
+      {/* 댓글 영역 */}
+
+      {showComments && (
+        <section
+          className="
+          mt-10
+          "
+        >
+          <h2
+            className="
+            text-2xl
+            font-bold
+            mb-5
+            "
+          >
+            댓글
+          </h2>
+
+          <div
+            className="
+            bg-white
+            rounded-xl
+            border
+            p-5
+            "
+          >
+            <textarea
               placeholder="댓글을 입력하세요."
               className="
-              flex-1
-              h-14
+              w-full
+              h-28
               border
               rounded-lg
-              px-4
+              p-4
+              resize-none
               "
             />
 
             <button
-              onClick={handleComment}
               className="
-              h-14
-              px-6
-              rounded-lg
-              bg-blue-700
+              mt-4
+              bg-primary
               text-white
+              px-6
+              py-2
+              rounded-lg
               "
             >
-              작성
+              등록
             </button>
           </div>
-
-          <div className="mt-6 space-y-5">
-            {comments.map((item) => (
-              <div key={item.commentId} className="border-b pb-4">
-                <p>{item.content}</p>
-
-                <span className="text-sm text-gray-400">
-                  {item.authorNickname}
-                </span>
-              </div>
-            ))}
-          </div>
         </section>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }
 

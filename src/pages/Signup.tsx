@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import PasswordInput from "../components/PasswordInput";
-import { checkEmail, signup, sendEmailCode, verifyEmailCode } from "../api/authApi";
+import {
+  checkEmail,
+  signup,
+  sendEmailCode,
+  verifyEmailCode,
+} from "../api/authApi";
 import axios from "axios";
 
 function Signup() {
+  const navigate = useNavigate();
+
   const [timer, setTimer] = useState(180);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
@@ -15,12 +23,15 @@ function Signup() {
   const [nickname, setNickname] = useState("");
 
   const [code, setCode] = useState("");
+
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
   const [emailMessage, setEmailMessage] = useState("");
   const [codeMessage, setCodeMessage] = useState("");
   const [signupMessage, setSignupMessage] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   // 인증번호 타이머
   useEffect(() => {
@@ -30,6 +41,7 @@ function Signup() {
       setTimer((prev) => {
         if (prev <= 1) {
           setIsTimerRunning(false);
+          setCodeMessage("인증번호 시간이 만료되었습니다.");
           return 0;
         }
 
@@ -40,7 +52,22 @@ function Signup() {
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
+  const startTimer = () => {
+    setTimer(180);
+    setIsTimerRunning(true);
+  };
 
+  const formatTime = () => {
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0",
+    )}`;
+  };
+
+  // 이메일 확인 + 인증번호 발송
   const handleCheckEmail = async () => {
     if (!email.trim()) {
       setEmailMessage("이메일을 입력해주세요.");
@@ -59,45 +86,44 @@ function Signup() {
         return;
       }
 
-      setEmailMessage("인증코드 발송 중...");
-
-      await sendEmailCode({ email });
+      await sendEmailCode({
+        email,
+      });
 
       setIsEmailChecked(true);
       setIsVerified(false);
       setCode("");
-      setCodeMessage("");
+
       setEmailMessage("이메일로 인증코드가 발송되었습니다.");
+
+      setCodeMessage("");
+
       startTimer();
     } catch (error) {
       console.error(error);
 
       if (axios.isAxiosError(error)) {
-        const errorCode = error.response?.data?.errorCode;
         const message = error.response?.data?.message;
 
-        if (errorCode === "EMAIL_DUPLICATE") {
-          setEmailMessage("이미 가입된 이메일입니다.");
-        } else {
-          setEmailMessage(message || "이메일 확인에 실패했습니다.");
-        }
+        setEmailMessage(message || "이메일 확인에 실패했습니다.");
       } else {
         setEmailMessage("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
 
-
+  // 인증번호 확인
   const handleVerifyCode = async () => {
     if (!code.trim()) {
       setCodeMessage("인증번호를 입력해주세요.");
       return;
     }
 
-    setCodeMessage("확인 중...");
-
     try {
-      const response = await verifyEmailCode({ email, code });
+      const response = await verifyEmailCode({
+        email,
+        code,
+      });
 
       if (!response.verified) {
         setCodeMessage(response.message || "인증번호가 일치하지 않습니다.");
@@ -106,33 +132,19 @@ function Signup() {
 
       setIsVerified(true);
       setIsTimerRunning(false);
+
       setCodeMessage("이메일 인증이 완료되었습니다.");
     } catch (error) {
       console.error(error);
+
       setCodeMessage("인증 확인에 실패했습니다.");
     }
   };
 
-
-  const startTimer = () => {
-    setTimer(180);
-    setIsTimerRunning(true);
-  };
-
-
-  const formatTime = () => {
-    const minutes = Math.floor(timer / 60);
-    const seconds = timer % 60;
-
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-      2,
-      "0",
-    )}`;
-  };
-
-
+  // 회원가입
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setSignupMessage("");
 
     if (!email.trim() || !password.trim() || !nickname.trim()) {
@@ -151,33 +163,34 @@ function Signup() {
     }
 
     try {
+      setLoading(true);
+
       const response = await signup({
         email,
         password,
         nickname,
       });
 
-      alert(response.message);
+      alert(response.message || "회원가입이 완료되었습니다.");
 
-      window.location.href = "/login";
+      navigate("/login");
     } catch (error) {
-  console.error(error);
+      console.error(error);
 
-  const serverMessage = axios.isAxiosError(error)
-    ? error.response?.data?.message
-    : undefined;
+      const serverMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined;
 
-  setSignupMessage(serverMessage || "회원가입에 실패했습니다.");
-}
+      setSignupMessage(serverMessage || "회원가입에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   return (
     <div className="bg-[#f8f9ff] h-screen overflow-hidden flex items-center justify-center p-3">
       <main className="w-full max-w-md">
         <div className="bg-white border rounded-xl p-6 shadow-lg">
-
-          {/* Logo */}
           <div className="flex flex-col items-center mb-5">
             <Logo size="lg" stacked />
 
@@ -186,25 +199,24 @@ function Signup() {
             </p>
           </div>
 
-
           <form onSubmit={handleSubmit} className="space-y-4">
-
             {/* 이메일 */}
+
             <div>
-              <label className="block mb-2 font-medium">
-                이메일
-              </label>
+              <label className="block mb-2 font-medium">이메일</label>
 
               <div className="flex gap-2">
-
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+
                     setIsEmailChecked(false);
                     setIsVerified(false);
+
                     setEmailMessage("");
+                    setCodeMessage("");
                   }}
                   placeholder="email@gsm.hs.kr"
                   className="w-full border rounded-lg px-4 py-2.5"
@@ -213,11 +225,19 @@ function Signup() {
                 <button
                   type="button"
                   onClick={handleCheckEmail}
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-lg whitespace-nowrap"
+                  disabled={isVerified}
+                  className="
+                  px-5
+                  py-2.5
+                  bg-blue-600
+                  text-white
+                  rounded-lg
+                  whitespace-nowrap
+                  disabled:opacity-50
+                  "
                 >
                   이메일 확인
                 </button>
-
               </div>
 
               {emailMessage && (
@@ -225,17 +245,13 @@ function Signup() {
               )}
             </div>
 
-
             {/* 인증번호 */}
+
             <div>
-              <label className="block mb-2 font-medium">
-                인증번호
-              </label>
+              <label className="block mb-2 font-medium">인증번호</label>
 
               <div className="flex gap-2">
-
                 <div className="relative flex-1">
-
                   <input
                     type="text"
                     value={code}
@@ -248,19 +264,23 @@ function Signup() {
                   <span className="absolute right-4 top-2.5 text-red-500">
                     {formatTime()}
                   </span>
-
                 </div>
-
 
                 <button
                   type="button"
                   onClick={handleVerifyCode}
                   disabled={!isEmailChecked || isVerified}
-                  className="px-4 py-2.5 bg-blue-600 text-white rounded-lg"
+                  className="
+                  px-4
+                  py-2.5
+                  bg-blue-600
+                  text-white
+                  rounded-lg
+                  disabled:opacity-50
+                  "
                 >
                   {isVerified ? "인증완료" : "인증확인"}
                 </button>
-
               </div>
 
               {codeMessage && (
@@ -268,12 +288,10 @@ function Signup() {
               )}
             </div>
 
-
             {/* 닉네임 */}
+
             <div>
-              <label className="block mb-2 font-medium">
-                닉네임
-              </label>
+              <label className="block mb-2 font-medium">닉네임</label>
 
               <input
                 type="text"
@@ -284,12 +302,10 @@ function Signup() {
               />
             </div>
 
-
             {/* 비밀번호 */}
+
             <div>
-              <label className="block mb-2 font-medium">
-                비밀번호
-              </label>
+              <label className="block mb-2 font-medium">비밀번호</label>
 
               <PasswordInput
                 value={password}
@@ -298,12 +314,8 @@ function Signup() {
               />
             </div>
 
-
-            {/* 비밀번호 확인 */}
             <div>
-              <label className="block mb-2 font-medium">
-                비밀번호 확인
-              </label>
+              <label className="block mb-2 font-medium">비밀번호 확인</label>
 
               <PasswordInput
                 value={confirmPassword}
@@ -312,42 +324,45 @@ function Signup() {
               />
             </div>
 
-
-            {/* 회원가입 버튼 */}
             <button
               type="submit"
-              className="w-full py-3 bg-blue-700 text-white rounded-lg text-lg font-bold"
+              disabled={loading}
+              className="
+              w-full
+              py-3
+              bg-blue-700
+              text-white
+              rounded-lg
+              text-lg
+              font-bold
+              disabled:opacity-50
+              "
             >
-              회원가입
+              {loading ? "가입 중..." : "회원가입"}
             </button>
 
             {signupMessage && (
-              <p className="text-xs text-gray-500 text-center">{signupMessage}</p>
+              <p className="text-xs text-gray-500 text-center">
+                {signupMessage}
+              </p>
             )}
-
           </form>
 
-
-          {/* 로그인 이동 */}
           <div className="mt-5 pt-5 border-t text-center">
+            <p className="text-gray-500">이미 계정이 있으신가요?</p>
 
-            <p className="text-gray-500">
-              이미 계정이 있으신가요?
-            </p>
-
-            <a href="/login" className="text-blue-700">
+            <button
+              onClick={() => navigate("/login")}
+              className="text-blue-700"
+            >
               로그인 페이지로 돌아가기
-            </a>
-
+            </button>
           </div>
-
         </div>
-
 
         <footer className="mt-3 text-center text-gray-400">
           © 2024 FEESH Social platform. All rights reserved.
         </footer>
-
       </main>
     </div>
   );

@@ -110,7 +110,7 @@ function CreatePost() {
   };
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen pb-stack-lg">
+    <div className="bg-surface text-on-surface min-h-screen pb-10">
       <Header />
 
       <main
@@ -131,7 +131,7 @@ function CreatePost() {
         >
           <button
             onClick={() => navigate(-1)}
-            className="material-symbols-outlined text-primary"
+            className="material-symbols-outlined text-blue-700"
           >
             arrow_back
           </button>
@@ -148,9 +148,8 @@ function CreatePost() {
           "
         >
           {/* 제목 */}
-
           <div>
-            <label>제목</label>
+            <label className="font-semibold">제목</label>
 
             <input
               value={title}
@@ -163,14 +162,14 @@ function CreatePost() {
                 py-3
                 rounded-lg
                 bg-gray-100
+                outline-none
               "
             />
           </div>
 
           {/* 가격 */}
-
           <div>
-            <label>가격</label>
+            <label className="font-semibold">가격</label>
 
             <div
               className="
@@ -191,11 +190,8 @@ function CreatePost() {
                   px-5
                   rounded-lg
                   border
-                  text-left
                   text-lg
                   appearance-none
-                  [&::-webkit-inner-spin-button]:appearance-none
-                  [&::-webkit-outer-spin-button]:appearance-none
                 "
               />
 
@@ -215,7 +211,6 @@ function CreatePost() {
                     rounded-lg
                     bg-blue-100
                     text-blue-700
-                    font-semibold
                   "
                 >
                   +500
@@ -229,7 +224,6 @@ function CreatePost() {
                     rounded-lg
                     bg-blue-100
                     text-blue-700
-                    font-semibold
                   "
                 >
                   +1000
@@ -242,8 +236,6 @@ function CreatePost() {
                     h-7
                     rounded-lg
                     bg-gray-100
-                    text-gray-700
-                    font-semibold
                   "
                 >
                   -500
@@ -256,8 +248,6 @@ function CreatePost() {
                     h-7
                     rounded-lg
                     bg-gray-100
-                    text-gray-700
-                    font-semibold
                   "
                 >
                   -1000
@@ -265,10 +255,10 @@ function CreatePost() {
               </div>
             </div>
           </div>
-          {/* 카테고리 */}
 
+          {/* 카테고리 */}
           <div>
-            <label>카테고리</label>
+            <label className="font-semibold">카테고리</label>
 
             <div
               className="
@@ -303,26 +293,24 @@ function CreatePost() {
           </div>
 
           {/* 기타 카테고리 */}
-
           {category === "ETC" && (
             <input
               value={etcCategory}
               onChange={(e) => setEtcCategory(e.target.value)}
               placeholder="기타 카테고리 입력"
               className="
-                  w-full
-                  px-4
-                  py-3
-                  rounded-lg
-                  bg-gray-100
-                "
+                w-full
+                px-4
+                py-3
+                rounded-lg
+                bg-gray-100
+              "
             />
           )}
 
           {/* 내용 */}
-
           <div>
-            <label>내용</label>
+            <label className="font-semibold">내용</label>
 
             <textarea
               rows={10}
@@ -342,7 +330,6 @@ function CreatePost() {
           </div>
 
           {/* 버튼 */}
-
           <div
             className="
               flex

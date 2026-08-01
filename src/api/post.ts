@@ -6,37 +6,22 @@ import api from "./axios";
 
 export interface PostSummary {
   id: number;
-
   title: string;
-
   content: string | null;
-
   category: string | null;
-
   price: number | null;
-
   authorNickname: string | null;
-
   profileImageUrl?: string | null;
-
   likeCount: number | null;
-
   viewCount: number | null;
-
   commentCount?: number | null;
-
   createdAt: string | null;
-
   liked: boolean;
 }
 
-// 게시글 목록 응답
-
 export interface PostListResponse {
   posts: PostSummary[];
-
   totalPages: number;
-
   totalElements: number;
 }
 
@@ -65,32 +50,23 @@ export const getPosts = (
 
 export interface LikeResponse {
   likeCount: number;
-
   liked: boolean;
 }
 
-// 좋아요 추가
-
 export const likePost = (postId: number) =>
   api.post<LikeResponse>(`/posts/${postId}/like`);
-
-// 좋아요 취소
 
 export const unlikePost = (postId: number) =>
   api.delete<LikeResponse>(`/posts/${postId}/like`);
 
 // ======================
 // 게시글 작성
-// JSON 방식
 // ======================
 
 export interface PostRequest {
   title: string;
-
   content: string;
-
   category: string;
-
   price: number;
 }
 
@@ -104,23 +80,14 @@ export const createPost = (data: PostRequest) => {
 
 export interface PostDetailResponse {
   id: number;
-
   title: string;
-
   content: string;
-
   category: string | null;
-
   price: number | null;
-
   authorNickname: string | null;
-
   likeCount: number;
-
   viewCount: number;
-
   createdAt: string | null;
-
   liked: boolean;
 }
 

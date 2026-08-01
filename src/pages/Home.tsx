@@ -7,21 +7,13 @@ import { getPosts, likePost, unlikePost } from "../api/post";
 
 interface Post {
   id: number;
-
   title: string;
-
   content: string | null;
-
   category: string | null;
-
   price: number | null;
-
   authorNickname: string | null;
-
   likeCount: number | null;
-
   liked: boolean;
-
   viewCount: number | null;
 }
 
@@ -46,9 +38,7 @@ function Home() {
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState<Post[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [selectedCategory, setSelectedCategory] = useState("전체");
 
   const fetchPosts = async () => {
@@ -66,8 +56,8 @@ function Home() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPosts();
   }, []);
 
@@ -81,7 +71,6 @@ function Home() {
         await likePost(post.id);
       }
 
-      // 좋아요 변경 후 서버 기준으로 다시 불러오기
       await fetchPosts();
     } catch (error) {
       console.error("좋아요 처리 실패", error);
@@ -280,7 +269,7 @@ function Home() {
                         />
                       </svg>
 
-                      {post.likeCount ?? 0}
+                      {Math.max(post.likeCount ?? 0, 0)}
                     </button>
 
                     <span>조회수 {post.viewCount ?? 0}</span>
