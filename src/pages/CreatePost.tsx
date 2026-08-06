@@ -25,7 +25,7 @@ function CreatePost() {
     },
     {
       id: "FASHION_SHOPPING",
-      label: "의류/쇼핑",
+      label: "패션/쇼핑",
     },
     {
       id: "DAILY_NECESSITY",

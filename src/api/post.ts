@@ -84,6 +84,7 @@ export interface PostDetailResponse {
   content: string;
   category: string | null;
   price: number | null;
+  authorId: number;
   authorNickname: string | null;
   likeCount: number;
   viewCount: number;
@@ -98,8 +99,9 @@ export const getPost = (postId: number) =>
 // 게시글 수정
 // ======================
 
-export const updatePost = (postId: number, data: PostRequest) =>
-  api.patch(`/posts/${postId}`, data);
+export const updatePost = (postId: number, data: PostRequest) => {
+  return api.patch(`/posts/${postId}`, data);
+};
 
 // ======================
 // 게시글 삭제

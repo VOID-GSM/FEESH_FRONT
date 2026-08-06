@@ -87,6 +87,7 @@ function Home() {
   return (
     <div
       className="
+      feesh-background
       min-h-screen
       bg-[#f8f9ff]
       "

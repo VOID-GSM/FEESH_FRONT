@@ -9,6 +9,8 @@ import {
 
 import type { NotificationResponse } from "../api/notification";
 
+import feeshBackground from "../assets/feesh-background.png";
+
 interface NotificationItem {
   type: "like" | "comment";
   data: NotificationResponse;
@@ -16,7 +18,6 @@ interface NotificationItem {
 
 function Notification() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-
   const [loading, setLoading] = useState(true);
 
   const loadNotifications = async () => {
@@ -29,7 +30,6 @@ function Notification() {
       ]);
 
       console.log("좋아요 알림 응답:", likeResponse.data);
-
       console.log("댓글 알림 응답:", commentResponse.data);
 
       const likes: NotificationItem[] = (likeResponse.data ?? []).map(
@@ -82,82 +82,41 @@ function Notification() {
   return (
     <div
       className="
-      min-h-screen
-      bg-[#f8f9ff]
+        feesh-background
+        min-h-screen
+        bg-[#f8f9ff]
+        bg-contain
+        bg-center
+        bg-no-repeat
       "
+      style={{
+        backgroundImage: `url(${feeshBackground})`,
+      }}
     >
       <Header />
 
-      <main
-        className="
-        max-w-3xl
-        mx-auto
-        px-6
-        py-10
-        "
-      >
+      <main className="max-w-3xl mx-auto px-6 py-10">
         <section
           className="
-          bg-white
-          rounded-xl
-          shadow-sm
-          p-8
+            bg-white
+            shadow-lg
+            rounded-xl
+            p-8
+            w-full
           "
         >
-          <div
-            className="
-            flex
-            justify-between
-            items-center
-            "
-          >
-            <h1
-              className="
-              text-2xl
-              font-bold
-              text-blue-700
-              "
-            >
-              알림
-            </h1>
-
-            <button
-              onClick={loadNotifications}
-              className="
-              text-sm
-              text-gray-500
-              hover:text-blue-600
-              "
-            >
-              새로고침
-            </button>
+          {/* 알림 제목 */}
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-blue-700">알림</h1>
           </div>
 
+          {/* 로딩 */}
           {loading ? (
-            <p
-              className="
-              mt-6
-              text-gray-500
-              "
-            >
-              알림을 불러오는 중입니다.
-            </p>
+            <p className="mt-6 text-gray-500">알림을 불러오는 중입니다.</p>
           ) : notifications.length === 0 ? (
-            <p
-              className="
-              mt-6
-              text-gray-500
-              "
-            >
-              아직 받은 알림이 없습니다.
-            </p>
+            <p className="mt-6 text-gray-500">아직 받은 알림이 없습니다.</p>
           ) : (
-            <div
-              className="
-              mt-6
-              space-y-4
-              "
-            >
+            <div className="mt-6 space-y-4">
               {notifications.map((notification) => (
                 <div
                   key={`${notification.type}-${notification.data.id}`}
@@ -167,14 +126,11 @@ function Notification() {
                     p-4
                     flex
                     justify-between
-                    "
+                    bg-white
+                  "
                 >
                   <div>
-                    <p
-                      className="
-                        font-medium
-                        "
-                    >
+                    <p className="font-medium">
                       {notification.data.senderNickname || "알 수 없는 사용자"}
                       님이{" "}
                       {notification.type === "like"
@@ -182,35 +138,17 @@ function Notification() {
                         : "댓글을 작성했습니다."}
                     </p>
 
-                    <p
-                      className="
-                        mt-2
-                        text-sm
-                        text-gray-500
-                        "
-                    >
+                    <p className="mt-2 text-sm text-gray-500">
                       게시글 번호 : {notification.data.postId}
                     </p>
 
                     {notification.data.commentId && (
-                      <p
-                        className="
-                          mt-1
-                          text-sm
-                          text-gray-500
-                          "
-                      >
+                      <p className="mt-1 text-sm text-gray-500">
                         댓글 번호 : {notification.data.commentId}
                       </p>
                     )}
 
-                    <p
-                      className="
-                        mt-2
-                        text-xs
-                        text-gray-400
-                        "
-                    >
+                    <p className="mt-2 text-xs text-gray-400">
                       {new Date(notification.data.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -223,7 +161,7 @@ function Notification() {
                           ? "text-gray-400"
                           : "text-blue-500"
                       }
-                      `}
+                    `}
                   >
                     {notification.data.read ? "읽음" : "새 알림"}
                   </span>

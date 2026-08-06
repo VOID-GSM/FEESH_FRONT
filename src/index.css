@@ -34,6 +34,14 @@ body {
 .transition-all-200 {
   transition: all 200ms ease-in-out;
 }
+
 html {
   overflow-y: scroll;
+}
+
+/* FEESH 배경 */
+.feesh-background {
+  background-image: url("./assets/feesh-background.png");
+  background-repeat: repeat;
+  background-position: center;
 }

@@ -188,7 +188,7 @@ function Signup() {
   };
 
   return (
-    <div className="bg-[#f8f9ff] h-screen overflow-hidden flex items-center justify-center p-3">
+    <div className="feesh-background bg-[#f8f9ff] h-screen overflow-hidden flex items-center justify-center p-3">
       <main className="w-full max-w-md">
         <div className="bg-white border rounded-xl p-6 shadow-lg">
           <div className="flex flex-col items-center mb-5">
@@ -359,10 +359,6 @@ function Signup() {
             </button>
           </div>
         </div>
-
-        <footer className="mt-3 text-center text-gray-400">
-          © 2024 FEESH Social platform. All rights reserved.
-        </footer>
       </main>
     </div>
   );
