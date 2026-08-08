@@ -95,7 +95,6 @@ function Signup() {
       setCode("");
 
       setEmailMessage("이메일로 인증코드가 발송되었습니다.");
-
       setCodeMessage("");
 
       startTimer();
@@ -188,24 +187,24 @@ function Signup() {
   };
 
   return (
-    <div className="bg-[#f8f9ff] h-screen overflow-hidden flex items-center justify-center p-3">
-      <main className="w-full max-w-md">
-        <div className="bg-white border rounded-xl p-6 shadow-lg">
-          <div className="flex flex-col items-center mb-5">
-            <Logo size="lg" stacked />
+    <div className="flex h-screen w-full items-center justify-center overflow-hidden bg-[#f8f9ff] p-3">
+      <main className="w-full min-w-0 max-w-md">
+        <div className="w-full min-w-0 rounded-xl border bg-white p-6 shadow-lg">
+          {/* 로고 */}
+          <div className="mb-5 flex min-w-0 flex-col items-center">
+            <Logo size="lg" className="scale-125" />
 
-            <p className="mt-2 text-gray-500 text-center text-sm whitespace-nowrap">
+            <p className="mt-4 w-full max-w-full break-keep text-center text-sm leading-relaxed text-gray-500">
               함께 소비를 공유하는 소셜 플랫폼 FEESH에 오신 것을 환영합니다.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* 이메일 */}
+            <div className="min-w-0">
+              <label className="mb-2 block font-medium">이메일</label>
 
-            <div>
-              <label className="block mb-2 font-medium">이메일</label>
-
-              <div className="flex gap-2">
+              <div className="flex min-w-0 gap-2">
                 <input
                   type="email"
                   value={email}
@@ -219,7 +218,7 @@ function Signup() {
                     setCodeMessage("");
                   }}
                   placeholder="email@gsm.hs.kr"
-                  className="w-full border rounded-lg px-4 py-2.5"
+                  className="min-w-0 w-full rounded-lg border px-4 py-2.5"
                 />
 
                 <button
@@ -227,13 +226,14 @@ function Signup() {
                   onClick={handleCheckEmail}
                   disabled={isVerified}
                   className="
-                  px-5
-                  py-2.5
-                  bg-blue-600
-                  text-white
-                  rounded-lg
-                  whitespace-nowrap
-                  disabled:opacity-50
+                    shrink-0
+                    rounded-lg
+                    bg-blue-600
+                    px-3
+                    py-2.5
+                    text-white
+                    disabled:opacity-50
+                    sm:px-5
                   "
                 >
                   이메일 확인
@@ -241,24 +241,25 @@ function Signup() {
               </div>
 
               {emailMessage && (
-                <p className="mt-1 text-xs text-gray-500">{emailMessage}</p>
+                <p className="mt-1 break-keep text-xs text-gray-500">
+                  {emailMessage}
+                </p>
               )}
             </div>
 
             {/* 인증번호 */}
+            <div className="min-w-0">
+              <label className="mb-2 block font-medium">인증번호</label>
 
-            <div>
-              <label className="block mb-2 font-medium">인증번호</label>
-
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div className="flex min-w-0 gap-2">
+                <div className="relative min-w-0 flex-1">
                   <input
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="6자리 숫자 입력"
                     disabled={!isEmailChecked || isVerified}
-                    className="w-full border rounded-lg px-4 py-2.5"
+                    className="w-full rounded-lg border px-4 py-2.5 pr-16"
                   />
 
                   <span className="absolute right-4 top-2.5 text-red-500">
@@ -271,12 +272,14 @@ function Signup() {
                   onClick={handleVerifyCode}
                   disabled={!isEmailChecked || isVerified}
                   className="
-                  px-4
-                  py-2.5
-                  bg-blue-600
-                  text-white
-                  rounded-lg
-                  disabled:opacity-50
+                    shrink-0
+                    rounded-lg
+                    bg-blue-600
+                    px-3
+                    py-2.5
+                    text-white
+                    disabled:opacity-50
+                    sm:px-4
                   "
                 >
                   {isVerified ? "인증완료" : "인증확인"}
@@ -284,28 +287,28 @@ function Signup() {
               </div>
 
               {codeMessage && (
-                <p className="mt-1 text-xs text-gray-500">{codeMessage}</p>
+                <p className="mt-1 break-keep text-xs text-gray-500">
+                  {codeMessage}
+                </p>
               )}
             </div>
 
             {/* 닉네임 */}
-
             <div>
-              <label className="block mb-2 font-medium">닉네임</label>
+              <label className="mb-2 block font-medium">닉네임</label>
 
               <input
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 placeholder="닉네임을 입력해주세요"
-                className="w-full border rounded-lg px-4 py-2.5"
+                className="w-full rounded-lg border px-4 py-2.5"
               />
             </div>
 
             {/* 비밀번호 */}
-
             <div>
-              <label className="block mb-2 font-medium">비밀번호</label>
+              <label className="mb-2 block font-medium">비밀번호</label>
 
               <PasswordInput
                 value={password}
@@ -314,8 +317,9 @@ function Signup() {
               />
             </div>
 
+            {/* 비밀번호 확인 */}
             <div>
-              <label className="block mb-2 font-medium">비밀번호 확인</label>
+              <label className="mb-2 block font-medium">비밀번호 확인</label>
 
               <PasswordInput
                 value={confirmPassword}
@@ -324,31 +328,33 @@ function Signup() {
               />
             </div>
 
+            {/* 회원가입 버튼 */}
             <button
               type="submit"
               disabled={loading}
               className="
-              w-full
-              py-3
-              bg-blue-700
-              text-white
-              rounded-lg
-              text-lg
-              font-bold
-              disabled:opacity-50
+                w-full
+                rounded-lg
+                bg-blue-700
+                py-3
+                text-lg
+                font-bold
+                text-white
+                disabled:opacity-50
               "
             >
               {loading ? "가입 중..." : "회원가입"}
             </button>
 
             {signupMessage && (
-              <p className="text-xs text-gray-500 text-center">
+              <p className="break-keep text-center text-xs text-gray-500">
                 {signupMessage}
               </p>
             )}
           </form>
 
-          <div className="mt-5 pt-5 border-t text-center">
+          {/* 로그인 */}
+          <div className="mt-5 border-t pt-5 text-center">
             <p className="text-gray-500">이미 계정이 있으신가요?</p>
 
             <button
@@ -359,10 +365,6 @@ function Signup() {
             </button>
           </div>
         </div>
-
-        <footer className="mt-3 text-center text-gray-400">
-          © 2024 FEESH Social platform. All rights reserved.
-        </footer>
       </main>
     </div>
   );
