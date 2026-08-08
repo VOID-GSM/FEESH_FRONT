@@ -74,27 +74,24 @@ function Notification() {
   };
 
   useEffect(() => {
+    // 알림 데이터를 처음 마운트될 때 조회
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotifications();
   }, []);
 
   return (
-    <div
-      className="
-        min-h-screen
-        bg-[#f8f9ff]
-      "
-    >
+    <div>
+      {" "}
       <Header />
-
       <main className="max-w-3xl mx-auto px-6 py-10">
         <section
           className="
-            bg-white
-            shadow-lg
-            rounded-xl
-            p-8
-            w-full
-          "
+        bg-white
+        shadow-lg
+        rounded-xl
+        p-8
+        w-full
+      "
         >
           {/* 알림 제목 */}
           <div className="flex items-center">
@@ -112,13 +109,13 @@ function Notification() {
                 <div
                   key={`${notification.type}-${notification.data.id}`}
                   className="
-                    border
-                    rounded-lg
-                    p-4
-                    flex
-                    justify-between
-                    bg-white
-                  "
+                border
+                rounded-lg
+                p-4
+                flex
+                justify-between
+                bg-white
+              "
                 >
                   <div>
                     <p className="font-medium">
@@ -146,13 +143,9 @@ function Notification() {
 
                   <span
                     className={`
-                      text-xs
-                      ${
-                        notification.data.read
-                          ? "text-gray-400"
-                          : "text-blue-500"
-                      }
-                    `}
+                  text-xs
+                  ${notification.data.read ? "text-gray-400" : "text-blue-500"}
+                `}
                   >
                     {notification.data.read ? "읽음" : "새 알림"}
                   </span>

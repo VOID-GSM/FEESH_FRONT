@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -152,12 +152,11 @@ const DefaultProfileIcon = ({ size = "w-7 h-7" }: { size?: string }) => {
       className={`${size} text-[#294C77]`}
     >
       {" "}
-      <circle cx="12" cy="8" r="4" />
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8"
-      />
+        d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"
+      />{" "}
     </svg>
   );
 };
@@ -220,7 +219,6 @@ function PostDetail() {
         const response = await getPost(Number(id));
 
         console.log("게시글 상세:", JSON.stringify(response.data, null, 2));
-
         console.log("백엔드 createdAt:", response.data.createdAt);
         console.log("프로필 이미지:", response.data.profileImageUrl);
 
@@ -247,7 +245,7 @@ function PostDetail() {
   }, []);
 
   // 댓글 목록 조회
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     if (!id) {
       return;
     }
@@ -261,7 +259,7 @@ function PostDetail() {
     } catch (error) {
       console.error("댓글 조회 실패:", error);
     }
-  };
+  }, [id]);
 
   // 게시글을 열었을 때 댓글 조회
   useEffect(() => {
@@ -269,8 +267,10 @@ function PostDetail() {
       return;
     }
 
+    // 게시글 상세 페이지가 열릴 때 댓글을 조회합니다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchComments();
-  }, [id]);
+  }, [id, fetchComments]);
 
   // 댓글 열기 / 닫기
   const handleToggleComments = async () => {
@@ -446,6 +446,7 @@ function PostDetail() {
     if (replyTargetId === commentId) {
       setReplyTargetId(null);
       setReplyContent("");
+
       return;
     }
 
@@ -727,9 +728,7 @@ function PostDetail() {
 
   // 게시글 조회 전
   if (!post) {
-    return (
-      <main className="p-10 text-center">존재하지 않는 게시글입니다. </main>
-    );
+    return <div>존재하지 않는 게시글입니다.</div>;
   }
 
   return (
@@ -741,7 +740,7 @@ function PostDetail() {
         className="flex items-center gap-2 text-gray-600 mb-8"
       >
         {" "}
-        <span className="material-symbols-outlined">arrow_back </span>
+        <span className="material-symbols-outlined">arrow_back</span>
         뒤로가기{" "}
       </button>
 
@@ -992,9 +991,7 @@ function PostDetail() {
             ) : (
               comments.map((comment) => {
                 const commentReplies = replies[comment.commentId] ?? [];
-
                 const isRepliesOpen = openReplies.includes(comment.commentId);
-
                 const isEditingThisComment =
                   editingCommentId === comment.commentId;
 
