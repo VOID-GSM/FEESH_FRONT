@@ -22,17 +22,15 @@ function Header() {
 
     const image = currentEmail
       ? localStorage.getItem(`profileImage_${currentEmail}`)
-      : null;
+      : localStorage.getItem("profileImage");
 
     setProfileImage(image);
   };
 
   // 프로필 사진 변경 감지
   useEffect(() => {
-    // Header가 처음 렌더링될 때 프로필 사진 확인
     loadProfileImage();
 
-    // 프로필 사진 변경 이벤트 감지
     const handleProfileImageUpdate = () => {
       loadProfileImage();
     };
@@ -64,30 +62,30 @@ function Header() {
 
   const profileImageUrl = getProfileImageUrl();
 
+  // 프로필 이미지 로딩 실패 시 기본 아이콘 표시
+  const handleProfileImageError = () => {
+    setProfileImage(null);
+
+    // 잘못된 이미지 URL이 localStorage에 남아있지 않도록 삭제
+    const currentEmail = localStorage.getItem("email");
+
+    if (currentEmail) {
+      localStorage.removeItem(`profileImage_${currentEmail}`);
+    } else {
+      localStorage.removeItem("profileImage");
+    }
+  };
+
   return (
-    <header className="w-full h-16 bg-white sticky top-0 z-50 shadow-sm">
-      <nav
-        className="
-          flex
-          items-center
-          justify-between
-          w-full
-          h-full
-          px-12
-          box-border
-        "
-      >
+    <header className="sticky top-0 z-50 w-full h-16 bg-white shadow-sm">
+      <nav className="flex items-center justify-between w-full h-full px-4 sm:px-6 lg:px-12 box-border">
         {/* 왼쪽 : 로고 */}
-        <Logo to="/home" />
+        <div className="shrink-0">
+          <Logo to="/home" />
+        </div>
 
         {/* 오른쪽 : 버튼 영역 */}
-        <div
-          className="
-            flex
-            items-center
-            gap-4
-          "
-        >
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {/* 글쓰기 */}
           <button
             type="button"
@@ -95,18 +93,22 @@ function Header() {
             className="
               flex
               items-center
+              justify-center
               gap-2
-              bg-blue-700
-              text-white
-              px-5
+              bg-blue-100
+              text-[#294C77]
+              px-3
+              sm:px-5
               py-2
               rounded-full
-              hover:bg-blue-800
+              hover:bg-blue-200
               transition
+              whitespace-nowrap
             "
           >
             <span className="material-symbols-outlined text-sm">edit</span>
-            글쓰기
+
+            <span className="hidden sm:inline">글쓰기</span>
           </button>
 
           {/* 알림 */}
@@ -119,8 +121,9 @@ function Header() {
               justify-center
               w-10
               h-10
-              text-gray-600
-              hover:text-blue-700
+              shrink-0
+              text-[#294C77]
+              hover:text-blue-600
               transition
             "
             aria-label="알림"
@@ -138,10 +141,11 @@ function Header() {
               justify-center
               w-10
               h-10
+              shrink-0
               rounded-full
               overflow-hidden
               border-2
-              border-black
+              border-blue-200
               bg-white
             "
             aria-label="프로필"
@@ -150,21 +154,18 @@ function Header() {
               <img
                 src={profileImageUrl}
                 alt="프로필"
-                className="
-                  w-full
-                  h-full
-                  object-cover
-                "
+                className="w-full h-full object-cover"
+                onError={handleProfileImageError}
               />
             ) : (
-              // 프로필 사진이 없을 때 기본 사람 아이콘
+              // 프로필 사진이 없으면 기본 사람 아이콘 표시
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className="w-6 h-6 text-black"
+                className="w-6 h-6 text-[#294C77]"
               >
                 <circle cx="12" cy="8" r="4" />
 

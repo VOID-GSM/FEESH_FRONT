@@ -130,8 +130,8 @@ function CreatePost() {
           "
         >
           <button
-            onClick={() => navigate(-1)}
-            className="material-symbols-outlined text-blue-700"
+            onClick={() => navigate("/home")}
+            className="material-symbols-outlined text-[#294C77]"
           >
             arrow_back
           </button>
@@ -210,7 +210,9 @@ function CreatePost() {
                     h-7
                     rounded-lg
                     bg-blue-100
-                    text-blue-700
+                    text-[#294C77]
+                    hover:bg-blue-200
+                    transition
                   "
                 >
                   +500
@@ -223,7 +225,9 @@ function CreatePost() {
                     h-7
                     rounded-lg
                     bg-blue-100
-                    text-blue-700
+                    text-[#294C77]
+                    hover:bg-blue-200
+                    transition
                   "
                 >
                   +1000
@@ -235,7 +239,10 @@ function CreatePost() {
                   className="
                     h-7
                     rounded-lg
-                    bg-gray-100
+                    bg-blue-50
+                    text-[#294C77]
+                    hover:bg-blue-100
+                    transition
                   "
                 >
                   -500
@@ -247,7 +254,10 @@ function CreatePost() {
                   className="
                     h-7
                     rounded-lg
-                    bg-gray-100
+                    bg-blue-50
+                    text-[#294C77]
+                    hover:bg-blue-100
+                    transition
                   "
                 >
                   -1000
@@ -278,11 +288,12 @@ function CreatePost() {
                     py-2
                     rounded-full
                     border
+                    transition
 
                     ${
                       category === item.id
-                        ? "bg-blue-600 text-white"
-                        : "bg-white"
+                        ? "bg-blue-200 text-[#294C77] border-blue-200 hover:bg-blue-300"
+                        : "bg-blue-50 text-[#294C77] border-blue-100 hover:bg-blue-100"
                     }
                   `}
                 >
@@ -345,7 +356,10 @@ function CreatePost() {
                 flex-1
                 py-3
                 rounded-lg
-                bg-gray-100
+                bg-blue-50
+                text-[#294C77]
+                hover:bg-blue-100
+                transition
               "
             >
               취소
@@ -358,9 +372,12 @@ function CreatePost() {
                 flex-1
                 py-3
                 rounded-lg
-                bg-blue-600
-                text-white
+                bg-blue-100
+                text-[#294C77]
+                font-semibold
+                hover:bg-blue-200
                 disabled:opacity-50
+                transition
               "
             >
               {loading ? "등록 중..." : "등록"}

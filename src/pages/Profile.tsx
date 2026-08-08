@@ -3,13 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Header from "../components/Header";
 
-import {
-  getMyFeed,
-  getMyComments,
-  logout,
-  withdraw,
-  uploadProfileImage,
-} from "../api/mypage";
+import { getMyFeed, logout, withdraw, uploadProfileImage } from "../api/mypage";
 
 import axios from "../api/axios";
 
@@ -17,13 +11,6 @@ interface MyPost {
   postId?: number;
   title?: string;
   likeCount?: number;
-  createdAt?: string;
-}
-
-interface MyComment {
-  commentId?: number;
-  postId?: number;
-  comment?: string;
   createdAt?: string;
 }
 
@@ -37,9 +24,9 @@ function Profile() {
   const profileImageKey = email ? `profileImage_${email}` : "profileImage";
 
   const [posts, setPosts] = useState<MyPost[]>([]);
-  const [comments, setComments] = useState<MyComment[]>([]);
 
   // 저장된 프로필 사진 불러오기
+  // 프로필 사진이 없으면 null → 기본 프로필 아이콘 표시
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     if (email) {
       return localStorage.getItem(`profileImage_${email}`);
@@ -79,34 +66,6 @@ function Profile() {
     }
   };
 
-  // 내 댓글 조회
-  const loadMyComments = async () => {
-    try {
-      const response = await getMyComments();
-
-      console.log(
-        "내 댓글 전체 데이터:",
-        JSON.stringify(response.data, null, 2),
-      );
-
-      const data = response.data;
-
-      if (Array.isArray(data)) {
-        setComments(data);
-      } else if (Array.isArray(data.content)) {
-        setComments(data.content);
-      } else if (Array.isArray(data.comments)) {
-        setComments(data.comments);
-      } else if (Array.isArray(data.data)) {
-        setComments(data.data);
-      } else {
-        setComments([]);
-      }
-    } catch (error) {
-      console.error("내 댓글 조회 실패:", error);
-    }
-  };
-
   // 프로필 사진 선택 및 업로드
   const handleProfileImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -120,9 +79,7 @@ function Profile() {
     // 이미지 파일인지 확인
     if (!file.type.startsWith("image/")) {
       alert("이미지 파일만 업로드할 수 있습니다.");
-
       event.target.value = "";
-
       return;
     }
 
@@ -192,7 +149,6 @@ function Profile() {
 
   useEffect(() => {
     loadMyPosts();
-    loadMyComments();
   }, []);
 
   // 로그아웃
@@ -243,8 +199,8 @@ function Profile() {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      {" "}
       <Header />
-
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* 내 정보 */}
         <section className="bg-white rounded-xl shadow-sm p-8">
@@ -254,19 +210,24 @@ function Profile() {
             {/* 프로필 사진 영역 */}
             <div className="relative">
               {/* 프로필 사진 */}
-              <div className="w-28 h-28 rounded-full overflow-hidden bg-white border border-black flex items-center justify-center">
+              <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-2 border-blue-200 flex items-center justify-center">
                 {profileImage ? (
                   <img
                     src={profileImage}
                     alt="프로필 사진"
                     className="w-full h-full object-cover"
-                    onError={(event) => {
+                    onError={() => {
                       console.error("프로필 이미지 표시 실패:", profileImage);
 
-                      event.currentTarget.style.display = "none";
+                      // 이미지 로딩에 실패하면 기본 프로필 아이콘 표시
+                      setProfileImage(null);
+
+                      // 잘못된 이미지 URL을 localStorage에서도 제거
+                      localStorage.removeItem(profileImageKey);
                     }}
                   />
                 ) : (
+                  // 프로필 이미지가 null이면 기본 프로필 아이콘 표시
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -290,25 +251,25 @@ function Profile() {
               <label
                 htmlFor="profile-image-input"
                 className={`
-                  absolute
-                  right-0
-                  bottom-0
-                  w-9
-                  h-9
-                  rounded-full
-                  bg-white
-                  border
-                  border-black
-                  flex
-                  items-center
-                  justify-center
-                  shadow-sm
-                  ${
-                    profileImageLoading
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer hover:bg-gray-100"
-                  }
-                `}
+              absolute
+              right-0
+              bottom-0
+              w-9
+              h-9
+              rounded-full
+              bg-blue-100
+              border
+              border-blue-200
+              flex
+              items-center
+              justify-center
+              shadow-sm
+              ${
+                profileImageLoading
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:bg-blue-200"
+              }
+            `}
               >
                 {/* 사진 아이콘 */}
                 <svg
@@ -317,7 +278,7 @@ function Profile() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.8"
-                  className="w-5 h-5 text-black"
+                  className="w-5 h-5 text-[#294C77]"
                 >
                   <rect
                     x="3"
@@ -369,7 +330,16 @@ function Profile() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
+              className="
+            w-full
+            rounded-lg
+            bg-blue-100
+            py-3
+            font-medium
+            text-blue-700
+            transition
+            hover:bg-blue-200
+          "
             >
               로그아웃
             </button>
@@ -377,7 +347,18 @@ function Profile() {
             <button
               type="button"
               onClick={handleWithdraw}
-              className="w-full border border-black text-black py-3 rounded-lg hover:bg-gray-100 transition"
+              className="
+            w-full
+            rounded-lg
+            border
+            border-blue-200
+            bg-blue-50
+            py-3
+            font-medium
+            text-blue-600
+            transition
+            hover:bg-blue-100
+          "
             >
               회원탈퇴
             </button>
@@ -409,31 +390,6 @@ function Profile() {
                   <p className="text-sm text-gray-500 mt-1">
                     좋아요 {post.likeCount ?? 0}
                   </p>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* 내 댓글 */}
-        <section className="mt-8 bg-white rounded-xl shadow-sm p-8">
-          <h2 className="text-xl font-bold text-black">내 댓글</h2>
-
-          <div className="mt-5 space-y-3">
-            {comments.length === 0 ? (
-              <p className="text-gray-500">작성한 댓글이 없습니다.</p>
-            ) : (
-              comments.map((comment, index) => (
-                <div
-                  key={comment.commentId ?? index}
-                  onClick={() => {
-                    if (comment.postId) {
-                      navigate(`/post/${comment.postId}`);
-                    }
-                  }}
-                  className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition"
-                >
-                  <p className="text-black">{comment.comment ?? "내용 없음"}</p>
                 </div>
               ))
             )}

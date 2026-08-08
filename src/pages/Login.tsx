@@ -60,7 +60,6 @@ function Login() {
   return (
     <div
       className="
-        feesh-background
         min-h-screen
         bg-[#f8f9ff]
         flex
@@ -83,10 +82,11 @@ function Login() {
           className="
             flex
             justify-center
-            mb-8
+            mb-10
+            scale-125
           "
         >
-          <Logo size="lg" stacked />
+          <Logo size="lg" />
         </div>
 
         {/* 로그인 폼 */}

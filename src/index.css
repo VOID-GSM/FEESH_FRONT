@@ -8,11 +8,21 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
 body {
   background-color: #f8f9ff;
   color: #121c2a;
   font-family: "Plus Jakarta Sans", sans-serif;
   min-height: 100vh;
+
+  /* 화면이 좁아졌을 때 가로 스크롤 방지 */
+  overflow-x: hidden;
 }
 
 /* Material Symbols 아이콘 */
@@ -24,24 +34,20 @@ body {
     "opsz" 24;
 }
 
-/* FEESH 게시글 작성 카드 */
-.form-card {
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.08);
-  border: 1px solid #e5e7eb;
+/* 가로 스크롤바 숨기기 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* 원본 HTML transition */
-.transition-all-200 {
-  transition: all 200ms ease-in-out;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-html {
-  overflow-y: scroll;
-}
-
-/* FEESH 배경 */
-.feesh-background {
-  background-image: url("./assets/feesh-background.png");
-  background-repeat: repeat;
-  background-position: center;
+/* 모바일에서 input, button 등이 화면 밖으로 나가는 것 방지 */
+button,
+input,
+textarea,
+select {
+  max-width: 100%;
 }

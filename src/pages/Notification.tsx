@@ -9,8 +9,6 @@ import {
 
 import type { NotificationResponse } from "../api/notification";
 
-import feeshBackground from "../assets/feesh-background.png";
-
 interface NotificationItem {
   type: "like" | "comment";
   data: NotificationResponse;
@@ -82,16 +80,9 @@ function Notification() {
   return (
     <div
       className="
-        feesh-background
         min-h-screen
         bg-[#f8f9ff]
-        bg-contain
-        bg-center
-        bg-no-repeat
       "
-      style={{
-        backgroundImage: `url(${feeshBackground})`,
-      }}
     >
       <Header />
 
@@ -107,7 +98,7 @@ function Notification() {
         >
           {/* 알림 제목 */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-blue-700">알림</h1>
+            <h1 className="text-2xl font-bold text-[#243B64]">알림</h1>
           </div>
 
           {/* 로딩 */}
