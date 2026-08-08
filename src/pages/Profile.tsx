@@ -20,13 +20,10 @@ function Profile() {
   const nickname = localStorage.getItem("nickname");
   const email = localStorage.getItem("email");
 
-  // 계정별 프로필 이미지 저장 키
   const profileImageKey = email ? `profileImage_${email}` : "profileImage";
 
   const [posts, setPosts] = useState<MyPost[]>([]);
 
-  // 저장된 프로필 사진 불러오기
-  // 프로필 사진이 없으면 null → 기본 프로필 아이콘 표시
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     if (email) {
       return localStorage.getItem(`profileImage_${email}`);
@@ -35,36 +32,51 @@ function Profile() {
     return localStorage.getItem("profileImage");
   });
 
-  // 프로필 사진 업로드 중인지 확인
   const [profileImageLoading, setProfileImageLoading] = useState(false);
 
   // 내 게시글 조회
-  const loadMyPosts = async () => {
-    try {
-      const response = await getMyFeed();
+  useEffect(() => {
+    let cancelled = false;
 
-      console.log(
-        "내 게시글 전체 데이터:",
-        JSON.stringify(response.data, null, 2),
-      );
+    const loadMyPosts = async () => {
+      try {
+        const response = await getMyFeed();
 
-      const data = response.data;
+        console.log(
+          "내 게시글 전체 데이터:",
+          JSON.stringify(response.data, null, 2),
+        );
 
-      if (Array.isArray(data)) {
-        setPosts(data);
-      } else if (Array.isArray(data.content)) {
-        setPosts(data.content);
-      } else if (Array.isArray(data.posts)) {
-        setPosts(data.posts);
-      } else if (Array.isArray(data.data)) {
-        setPosts(data.data);
-      } else {
-        setPosts([]);
+        const data = response.data;
+
+        if (cancelled) {
+          return;
+        }
+
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else if (Array.isArray(data.content)) {
+          setPosts(data.content);
+        } else if (Array.isArray(data.posts)) {
+          setPosts(data.posts);
+        } else if (Array.isArray(data.data)) {
+          setPosts(data.data);
+        } else {
+          setPosts([]);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("내 게시글 조회 실패:", error);
+        }
       }
-    } catch (error) {
-      console.error("내 게시글 조회 실패:", error);
-    }
-  };
+    };
+
+    loadMyPosts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 프로필 사진 선택 및 업로드
   const handleProfileImageChange = async (
@@ -76,7 +88,6 @@ function Profile() {
       return;
     }
 
-    // 이미지 파일인지 확인
     if (!file.type.startsWith("image/")) {
       alert("이미지 파일만 업로드할 수 있습니다.");
       event.target.value = "";
@@ -90,7 +101,6 @@ function Profile() {
     try {
       setProfileImageLoading(true);
 
-      // 1. 이미지 파일 업로드
       const response = await uploadProfileImage(file);
 
       console.log(
@@ -98,7 +108,6 @@ function Profile() {
         JSON.stringify(response.data, null, 2),
       );
 
-      // 2. 업로드 응답에서 imageUrl 가져오기
       const imageUrl = response.data?.imageUrl;
 
       if (!imageUrl) {
@@ -111,27 +120,22 @@ function Profile() {
 
       console.log("업로드된 imageUrl:", imageUrl);
 
-      // 백엔드가 상대 경로를 보내는 경우
       const fullImageUrl = imageUrl.startsWith("http")
         ? imageUrl
         : `http://ssh.gsmsv.site:25126${imageUrl}`;
 
       console.log("저장할 profileImageUrl:", fullImageUrl);
 
-      // 3. 백엔드 DB에 프로필 이미지 URL 저장
       await axios.patch("/mypage/update", {
         image: fullImageUrl,
       });
 
       console.log("프로필 이미지 URL DB 저장 완료");
 
-      // 4. 화면에 표시
       setProfileImage(fullImageUrl);
 
-      // 5. localStorage에도 저장
       localStorage.setItem(profileImageKey, fullImageUrl);
 
-      // 6. Header에 프로필 이미지 변경 알림
       window.dispatchEvent(new Event("profileImageUpdated"));
 
       alert("프로필 사진이 변경되었습니다.");
@@ -141,15 +145,9 @@ function Profile() {
       alert("프로필 사진 변경에 실패했습니다.");
     } finally {
       setProfileImageLoading(false);
-
-      // 같은 파일을 다시 선택할 수 있도록 초기화
       event.target.value = "";
     }
   };
-
-  useEffect(() => {
-    loadMyPosts();
-  }, []);
 
   // 로그아웃
   const handleLogout = async () => {
@@ -159,8 +157,6 @@ function Profile() {
       console.error("로그아웃 API 실패:", error);
     }
 
-    // 로그인 정보만 삭제
-    // 프로필 이미지는 삭제하지 않음
     localStorage.removeItem("token");
     localStorage.removeItem("nickname");
     localStorage.removeItem("email");
@@ -181,7 +177,6 @@ function Profile() {
     try {
       await withdraw();
 
-      // 회원탈퇴이므로 프로필 이미지까지 삭제
       localStorage.removeItem(profileImageKey);
       localStorage.removeItem("token");
       localStorage.removeItem("nickname");
@@ -198,18 +193,26 @@ function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff]">
-      {" "}
+    <div>
       <Header />
-      <main className="max-w-3xl mx-auto px-6 py-10">
+
+      <main
+        className="
+          w-full
+          max-w-3xl
+          mx-auto
+          px-4
+          sm:px-6
+          py-8
+        "
+      >
         {/* 내 정보 */}
         <section className="bg-white rounded-xl shadow-sm p-8">
-          <h1 className="text-2xl font-bold text-black mb-8">내 정보</h1>
+          <h1 className="text-2xl font-bold text-black">내 정보</h1>
 
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 mt-8">
             {/* 프로필 사진 영역 */}
             <div className="relative">
-              {/* 프로필 사진 */}
               <div className="w-28 h-28 rounded-full overflow-hidden bg-white border-2 border-blue-200 flex items-center justify-center">
                 {profileImage ? (
                   <img
@@ -219,15 +222,12 @@ function Profile() {
                     onError={() => {
                       console.error("프로필 이미지 표시 실패:", profileImage);
 
-                      // 이미지 로딩에 실패하면 기본 프로필 아이콘 표시
                       setProfileImage(null);
 
-                      // 잘못된 이미지 URL을 localStorage에서도 제거
                       localStorage.removeItem(profileImageKey);
                     }}
                   />
                 ) : (
-                  // 프로필 이미지가 null이면 기본 프로필 아이콘 표시
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -251,27 +251,26 @@ function Profile() {
               <label
                 htmlFor="profile-image-input"
                 className={`
-              absolute
-              right-0
-              bottom-0
-              w-9
-              h-9
-              rounded-full
-              bg-blue-100
-              border
-              border-blue-200
-              flex
-              items-center
-              justify-center
-              shadow-sm
-              ${
-                profileImageLoading
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer hover:bg-blue-200"
-              }
-            `}
+                  absolute
+                  right-0
+                  bottom-0
+                  w-9
+                  h-9
+                  rounded-full
+                  bg-blue-100
+                  border
+                  border-blue-200
+                  flex
+                  items-center
+                  justify-center
+                  shadow-sm
+                  ${
+                    profileImageLoading
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer hover:bg-blue-200"
+                  }
+                `}
               >
-                {/* 사진 아이콘 */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -300,7 +299,6 @@ function Profile() {
                 </svg>
               </label>
 
-              {/* 파일 선택 */}
               <input
                 id="profile-image-input"
                 type="file"
@@ -311,7 +309,6 @@ function Profile() {
               />
             </div>
 
-            {/* 업로드 중일 때만 표시 */}
             {profileImageLoading && (
               <p className="text-sm text-gray-500">
                 프로필 사진을 업로드하고 있습니다...
@@ -331,15 +328,15 @@ function Profile() {
               type="button"
               onClick={handleLogout}
               className="
-            w-full
-            rounded-lg
-            bg-blue-100
-            py-3
-            font-medium
-            text-blue-700
-            transition
-            hover:bg-blue-200
-          "
+                w-full
+                rounded-lg
+                bg-blue-100
+                py-3
+                font-medium
+                text-blue-700
+                transition
+                hover:bg-blue-200
+              "
             >
               로그아웃
             </button>
@@ -348,17 +345,17 @@ function Profile() {
               type="button"
               onClick={handleWithdraw}
               className="
-            w-full
-            rounded-lg
-            border
-            border-blue-200
-            bg-blue-50
-            py-3
-            font-medium
-            text-blue-600
-            transition
-            hover:bg-blue-100
-          "
+                w-full
+                rounded-lg
+                border
+                border-blue-200
+                bg-blue-50
+                py-3
+                font-medium
+                text-blue-600
+                transition
+                hover:bg-blue-100
+              "
             >
               회원탈퇴
             </button>
@@ -381,7 +378,15 @@ function Profile() {
                       navigate(`/post/${post.postId}`);
                     }
                   }}
-                  className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition"
+                  className="
+                    border
+                    border-gray-200
+                    rounded-lg
+                    p-4
+                    cursor-pointer
+                    hover:bg-gray-50
+                    transition
+                  "
                 >
                   <p className="font-bold text-black">
                     {post.title ?? "제목 없음"}

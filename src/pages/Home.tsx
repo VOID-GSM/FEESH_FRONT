@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../components/Header";
@@ -70,69 +70,70 @@ function Home() {
   const [page, setPage] = useState(0);
 
   // 전체 페이지 수
-  // 카테고리를 선택하면 해당 카테고리 기준의 totalPages가 들어옴
   const [totalPages, setTotalPages] = useState(0);
 
   // 더 보기 로딩
   const [loadingMore, setLoadingMore] = useState(false);
 
   // 게시글 조회
-  const fetchPosts = async (pageNumber = 0, append = false) => {
-    try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
+  const fetchPosts = useCallback(
+    async (pageNumber = 0, append = false) => {
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        // 현재 선택한 카테고리의 백엔드 값
+        const category = CATEGORY_VALUES[selectedCategory];
+
+        console.log("게시글 조회");
+        console.log("정렬:", sort);
+        console.log("페이지:", pageNumber);
+        console.log("카테고리:", selectedCategory);
+        console.log("백엔드에 보낼 category:", category);
+
+        const response = await getPosts(sort, pageNumber, 10, category);
+
+        console.log("게시글 목록 응답:", response.data);
+
+        // 더 보기
+        if (append) {
+          setPosts((prev) => [...prev, ...response.data.posts]);
+        } else {
+          // 처음 조회하거나
+          // 카테고리 / 정렬을 변경했을 때
+          setPosts(response.data.posts);
+        }
+
+        setPage(pageNumber);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        console.error("게시글 조회 실패:", error);
+
+        if (!append) {
+          setPosts([]);
+          setTotalPages(0);
+        }
+      } finally {
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
       }
+    },
+    [selectedCategory, sort],
+  );
 
-      // 현재 선택된 카테고리의 백엔드 값
-      const category = CATEGORY_VALUES[selectedCategory];
-
-      console.log("게시글 조회");
-      console.log("정렬:", sort);
-      console.log("페이지:", pageNumber);
-      console.log("카테고리:", selectedCategory);
-      console.log("백엔드에 보낼 category:", category);
-
-      const response = await getPosts(sort, pageNumber, 10, category);
-
-      console.log("게시글 목록 응답:", response.data);
-
-      // 더 보기
-      if (append) {
-        setPosts((prev) => [...prev, ...response.data.posts]);
-      } else {
-        // 처음 조회하거나
-        // 카테고리/정렬을 변경했을 때
-        setPosts(response.data.posts);
-      }
-
-      setPage(pageNumber);
-
-      // 백엔드에서 현재 카테고리 기준으로 보내주는 totalPages
-      setTotalPages(response.data.totalPages);
-    } catch (error) {
-      console.error("게시글 조회 실패:", error);
-
-      if (!append) {
-        setPosts([]);
-        setTotalPages(0);
-      }
-    } finally {
-      if (append) {
-        setLoadingMore(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  };
-
-  // 정렬 또는 카테고리가 바뀌면
-  // 무조건 첫 페이지부터 다시 조회
+  // 정렬 또는 카테고리가 변경되면 첫 페이지부터 다시 조회
   useEffect(() => {
-    setPage(0);
+    // 게시글 조회를 위한 effect이므로
+    // 이 호출에 대해서만 set-state-in-effect 규칙을 무시
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPosts(0, false);
-  }, [sort, selectedCategory]);
+  }, [fetchPosts]);
 
   // 카테고리 선택
   const handleCategorySelect = (category: string) => {
@@ -140,10 +141,7 @@ function Home() {
   };
 
   // 좋아요
-  const handleLike = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-    post: Post,
-  ) => {
+  const handleLike = async (e: React.MouseEvent, post: Post) => {
     e.stopPropagation();
 
     try {
@@ -153,8 +151,7 @@ function Home() {
         await likePost(post.id);
       }
 
-      // 현재 카테고리 + 현재 정렬 기준으로
-      // 첫 페이지를 다시 가져옴
+      // 좋아요 처리 후 현재 목록을 다시 조회
       await fetchPosts(0, false);
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
@@ -180,11 +177,11 @@ function Home() {
     await fetchPosts(page + 1, true);
   };
 
-  // 더 불러올 게시글이 있는지
+  // 더 불러올 게시글이 있는지 확인
   const hasMorePosts = page + 1 < totalPages;
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff]">
+    <div className="min-h-screen">
       <Header />
 
       <main

@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
-import Logo from "./Logo";
 import { useNavigate } from "react-router-dom";
+
+import Logo from "./Logo";
 
 function Header() {
   const navigate = useNavigate();
 
-  // 현재 로그인한 사용자의 이메일
   const email = localStorage.getItem("email");
 
-  // 계정별 프로필 사진 저장 키
   const profileImageKey = email ? `profileImage_${email}` : "profileImage";
 
-  // localStorage에 저장된 프로필 사진
   const [profileImage, setProfileImage] = useState<string | null>(() => {
     return localStorage.getItem(profileImageKey);
   });
 
-  // 프로필 사진 가져오기
   const loadProfileImage = () => {
     const currentEmail = localStorage.getItem("email");
 
@@ -27,10 +24,8 @@ function Header() {
     setProfileImage(image);
   };
 
-  // 프로필 사진 변경 감지
+  // 프로필 사진 변경 이벤트만 감지
   useEffect(() => {
-    loadProfileImage();
-
     const handleProfileImageUpdate = () => {
       loadProfileImage();
     };
@@ -45,28 +40,23 @@ function Header() {
     };
   }, []);
 
-  // 백엔드에서 받은 이미지 경로를 실제 이미지 URL로 변환
   const getProfileImageUrl = () => {
     if (!profileImage) {
       return null;
     }
 
-    // 이미 완전한 URL인 경우
     if (profileImage.startsWith("http")) {
       return profileImage;
     }
 
-    // /uploads/... 형태인 경우
     return `http://ssh.gsmsv.site:25126${profileImage}`;
   };
 
   const profileImageUrl = getProfileImageUrl();
 
-  // 프로필 이미지 로딩 실패 시 기본 아이콘 표시
   const handleProfileImageError = () => {
     setProfileImage(null);
 
-    // 잘못된 이미지 URL이 localStorage에 남아있지 않도록 삭제
     const currentEmail = localStorage.getItem("email");
 
     if (currentEmail) {
@@ -77,12 +67,16 @@ function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-16 bg-white shadow-sm">
-      <nav className="flex items-center justify-between w-full h-full px-4 sm:px-6 lg:px-12 box-border">
+    <header>
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4">
         {/* 왼쪽 : 로고 */}
-        <div className="shrink-0">
-          <Logo to="/home" />
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/home")}
+          className="shrink-0"
+        >
+          <Logo />
+        </button>
 
         {/* 오른쪽 : 버튼 영역 */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -158,7 +152,6 @@ function Header() {
                 onError={handleProfileImageError}
               />
             ) : (
-              // 프로필 사진이 없으면 기본 사람 아이콘 표시
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
