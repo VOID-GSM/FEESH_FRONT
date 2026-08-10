@@ -57,7 +57,6 @@ export const createPost = (data: PostRequest, image?: File | null) => {
       content: data.content,
       category: data.category,
       price: data.price,
-      imageUrl: "",
     }),
   );
 
