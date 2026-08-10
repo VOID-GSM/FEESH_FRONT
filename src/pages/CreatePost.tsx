@@ -13,7 +13,7 @@ const categories = [
   { value: "ETC", label: "기타" },
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 function CreatePost() {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ function CreatePost() {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      alert("이미지는 10MB 이하만 업로드할 수 있습니다.");
+      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
       event.target.value = "";
       return;
     }
@@ -72,7 +72,37 @@ function CreatePost() {
     setImagePreview("");
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handlePriceChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+
+    if (value === "") {
+      setPrice("");
+      return;
+    }
+
+    const numberValue = Number(value);
+
+    if (Number.isNaN(numberValue) || numberValue < 0) {
+      return;
+    }
+
+    setPrice(String(numberValue));
+  };
+
+  const changePrice = (amount: number) => {
+    const currentPrice = price === "" ? 0 : Number(price);
+
+    if (Number.isNaN(currentPrice)) {
+      setPrice(String(Math.max(0, amount)));
+      return;
+    }
+
+    const nextPrice = Math.max(0, currentPrice + amount);
+
+    setPrice(String(nextPrice));
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (loading) {
@@ -140,7 +170,7 @@ function CreatePost() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-[#121c2a]">
+    <div className="min-h-screen bg-[#f8f9ff]">
       <Header />
 
       <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -208,20 +238,60 @@ function CreatePost() {
                 가격
               </label>
 
-              <div className="relative">
-                <input
-                  id="price"
-                  type="number"
-                  min="0"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder="가격을 입력해주세요."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm outline-none transition focus:border-[#294C77] focus:ring-2 focus:ring-[#294C77]/10"
-                />
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    id="price"
+                    type="number"
+                    min="0"
+                    value={price}
+                    onChange={handlePriceChange}
+                    placeholder="가격을 입력해주세요."
+                    className="w-full appearance-none rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm outline-none transition focus:border-[#294C77] focus:ring-2 focus:ring-[#294C77]/10 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
 
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                  원
-                </span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                    원
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <button
+                    type="button"
+                    onClick={() => changePrice(-1000)}
+                    disabled={loading}
+                    className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    -1,000원
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => changePrice(1000)}
+                    disabled={loading}
+                    className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    +1,000원
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => changePrice(-500)}
+                    disabled={loading}
+                    className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    -500원
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => changePrice(500)}
+                    disabled={loading}
+                    className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    +500원
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -264,7 +334,7 @@ function CreatePost() {
                     사진을 첨부해주세요
                   </span>
 
-                  <span className="mt-1 text-xs text-gray-400">최대 10MB</span>
+                  <span className="mt-1 text-xs text-gray-400">최대 5MB</span>
 
                   <input
                     id="post-image"
