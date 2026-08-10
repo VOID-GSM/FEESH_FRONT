@@ -24,7 +24,6 @@ function Header() {
     setProfileImage(image);
   };
 
-  // 프로필 사진 변경 이벤트만 감지
   useEffect(() => {
     const handleProfileImageUpdate = () => {
       loadProfileImage();
@@ -67,8 +66,17 @@ function Header() {
   };
 
   return (
-    <header>
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4">
+    <header className="w-full bg-white">
+      <nav
+        className="
+    w-full
+    px-10
+    py-4
+    flex
+    items-center
+    justify-between
+  "
+      >
         {/* 왼쪽 : 로고 */}
         <button
           type="button"

@@ -47,8 +47,25 @@ export interface PostRequest {
   price: number;
 }
 
-export const createPost = (data: PostRequest) => {
-  return api.post("/posts/post", data);
+export const createPost = (data: PostRequest, image?: File | null) => {
+  const formData = new FormData();
+
+  formData.append(
+    "request",
+    JSON.stringify({
+      title: data.title,
+      content: data.content,
+      category: data.category,
+      price: data.price,
+      imageUrl: "",
+    }),
+  );
+
+  if (image) {
+    formData.append("image", image);
+  }
+
+  return api.post("/posts/post", formData);
 };
 
 // ======================
@@ -62,6 +79,8 @@ export interface PostDetailResponse {
   price: number | null;
   authorId: number;
   authorNickname: string | null;
+  profileImageUrl: string | null;
+  imageUrl: string | null;
   likeCount: number;
   viewCount: number;
   createdAt: string | null;

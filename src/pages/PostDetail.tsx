@@ -29,6 +29,7 @@ interface Post {
   authorId: number;
   authorNickname: string | null;
   profileImageUrl: string | null;
+  imageUrl: string | null;
   likeCount: number;
   viewCount: number;
   createdAt: string;
@@ -44,7 +45,8 @@ interface Comment {
   createdAt?: string;
 }
 
-// 백엔드 카테고리 → 화면 표시용 한국어
+const API_BASE_URL = "http://ssh.gsmsv.site:25126";
+
 const categoryMap: Record<string, string> = {
   FOOD: "음식",
   FASHION_SHOPPING: "패션/쇼핑",
@@ -53,7 +55,6 @@ const categoryMap: Record<string, string> = {
   ETC: "기타",
 };
 
-// 화면 표시용 카테고리 목록
 const categories = [
   { value: "FOOD", label: "음식" },
   { value: "FASHION_SHOPPING", label: "패션/쇼핑" },
@@ -62,7 +63,6 @@ const categories = [
   { value: "ETC", label: "기타" },
 ];
 
-// 카테고리 변환
 const getCategoryLabel = (category: string | null): string => {
   if (!category) {
     return "";
@@ -71,14 +71,24 @@ const getCategoryLabel = (category: string | null): string => {
   return categoryMap[category] ?? category;
 };
 
-// 날짜 표시
+const getImageUrl = (imageUrl: string | null): string | null => {
+  if (!imageUrl) {
+    return null;
+  }
+
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  return `${API_BASE_URL}${imageUrl}`;
+};
+
 const formatDate = (date: string): string => {
   const createdDate = date.endsWith("Z")
     ? new Date(date)
     : new Date(`${date}Z`);
 
   const now = new Date();
-
   const diffTime = now.getTime() - createdDate.getTime();
 
   if (diffTime <= 0) {
@@ -121,7 +131,6 @@ const formatDate = (date: string): string => {
   }월 ${createdDate.getDate()}일`;
 };
 
-// JWT에서 로그인한 사용자 ID 가져오기
 const getUserIdFromToken = (): number | null => {
   const token = localStorage.getItem("token");
 
@@ -131,16 +140,13 @@ const getUserIdFromToken = (): number | null => {
 
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-
     return Number(payload.sub);
   } catch (error) {
     console.error("토큰 해석 실패:", error);
-
     return null;
   }
 };
 
-// 기본 프로필 아이콘
 const DefaultProfileIcon = ({ size = "w-7 h-7" }: { size?: string }) => {
   return (
     <svg
@@ -151,12 +157,11 @@ const DefaultProfileIcon = ({ size = "w-7 h-7" }: { size?: string }) => {
       strokeWidth="1.8"
       className={`${size} text-[#294C77]`}
     >
-      {" "}
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"
-      />{" "}
+      />
     </svg>
   );
 };
@@ -167,37 +172,30 @@ function PostDetail() {
 
   const userId = getUserIdFromToken();
 
-  // 게시글
   const [post, setPost] = useState<Post | null>(null);
 
-  // 좋아요
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
-  // 댓글
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentContent, setCommentContent] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
 
-  // 댓글 수정
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [commentEditLoading, setCommentEditLoading] = useState(false);
 
-  // 답글
   const [replies, setReplies] = useState<Record<number, Comment[]>>({});
   const [openReplies, setOpenReplies] = useState<number[]>([]);
   const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
 
-  // 답글 수정
   const [editingReplyId, setEditingReplyId] = useState<number | null>(null);
   const [editingReplyContent, setEditingReplyContent] = useState("");
   const [replyEditLoading, setReplyEditLoading] = useState(false);
 
-  // 게시글 수정
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -205,10 +203,8 @@ function PostDetail() {
   const [editPrice, setEditPrice] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
-  // 날짜 갱신용
   const [, setCurrentDate] = useState(new Date());
 
-  // 게시글 상세 조회
   useEffect(() => {
     if (!id) {
       return;
@@ -221,6 +217,7 @@ function PostDetail() {
         console.log("게시글 상세:", JSON.stringify(response.data, null, 2));
         console.log("백엔드 createdAt:", response.data.createdAt);
         console.log("프로필 이미지:", response.data.profileImageUrl);
+        console.log("게시글 이미지:", response.data.imageUrl);
 
         setPost(response.data);
         setLiked(response.data.liked ?? false);
@@ -233,7 +230,6 @@ function PostDetail() {
     fetchPost();
   }, [id]);
 
-  // 날짜 표시 주기적 갱신
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
@@ -244,7 +240,6 @@ function PostDetail() {
     };
   }, []);
 
-  // 댓글 목록 조회
   const fetchComments = useCallback(async () => {
     if (!id) {
       return;
@@ -261,18 +256,15 @@ function PostDetail() {
     }
   }, [id]);
 
-  // 게시글을 열었을 때 댓글 조회
   useEffect(() => {
     if (!id) {
       return;
     }
 
-    // 게시글 상세 페이지가 열릴 때 댓글을 조회합니다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchComments();
   }, [id, fetchComments]);
 
-  // 댓글 열기 / 닫기
   const handleToggleComments = async () => {
     const nextShowComments = !showComments;
 
@@ -283,7 +275,6 @@ function PostDetail() {
     }
   };
 
-  // 댓글 등록
   const handleCreateComment = async () => {
     if (!id) {
       return;
@@ -312,26 +303,22 @@ function PostDetail() {
       await fetchComments();
     } catch (error) {
       console.error("댓글 등록 실패:", error);
-
       alert("댓글 등록에 실패했습니다.");
     } finally {
       setCommentLoading(false);
     }
   };
 
-  // 댓글 수정 시작
   const handleStartCommentEdit = (comment: Comment) => {
     setEditingCommentId(comment.commentId);
     setEditingCommentContent(comment.content);
   };
 
-  // 댓글 수정 취소
   const handleCancelCommentEdit = () => {
     setEditingCommentId(null);
     setEditingCommentContent("");
   };
 
-  // 댓글 수정
   const handleUpdateComment = async (commentId: number) => {
     const content = editingCommentContent.trim();
 
@@ -365,14 +352,12 @@ function PostDetail() {
       handleCancelCommentEdit();
     } catch (error) {
       console.error("댓글 수정 실패:", error);
-
       alert("댓글 수정에 실패했습니다.");
     } finally {
       setCommentEditLoading(false);
     }
   };
 
-  // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     const confirmDelete = window.confirm("댓글을 삭제하시겠습니까?");
 
@@ -389,13 +374,11 @@ function PostDetail() {
 
       setReplies((prevReplies) => {
         const nextReplies = { ...prevReplies };
-
         delete nextReplies[commentId];
-
         return nextReplies;
       });
 
-      setOpenReplies((prev) => prev.filter((id) => id !== commentId));
+      setOpenReplies((prev) => prev.filter((replyId) => replyId !== commentId));
 
       if (replyTargetId === commentId) {
         setReplyTargetId(null);
@@ -403,12 +386,10 @@ function PostDetail() {
       }
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
-
       alert("댓글 삭제에 실패했습니다.");
     }
   };
 
-  // 답글 조회
   const fetchReplies = async (commentId: number) => {
     try {
       const response = await getReplies(commentId);
@@ -421,18 +402,15 @@ function PostDetail() {
       }));
     } catch (error) {
       console.error("답글 조회 실패:", error);
-
       alert("답글을 불러오지 못했습니다.");
     }
   };
 
-  // 답글 열기 / 닫기
   const handleToggleReplies = async (commentId: number) => {
     const isOpen = openReplies.includes(commentId);
 
     if (isOpen) {
-      setOpenReplies((prev) => prev.filter((id) => id !== commentId));
-
+      setOpenReplies((prev) => prev.filter((replyId) => replyId !== commentId));
       return;
     }
 
@@ -441,12 +419,10 @@ function PostDetail() {
     await fetchReplies(commentId);
   };
 
-  // 답글 입력창 열기
   const handleStartReply = (commentId: number) => {
     if (replyTargetId === commentId) {
       setReplyTargetId(null);
       setReplyContent("");
-
       return;
     }
 
@@ -459,7 +435,6 @@ function PostDetail() {
     }
   };
 
-  // 답글 등록
   const handleCreateReply = async (commentId: number) => {
     const content = replyContent.trim();
 
@@ -485,26 +460,22 @@ function PostDetail() {
       await fetchReplies(commentId);
     } catch (error) {
       console.error("답글 등록 실패:", error);
-
       alert("답글 등록에 실패했습니다.");
     } finally {
       setReplyLoading(false);
     }
   };
 
-  // 답글 수정 시작
   const handleStartReplyEdit = (reply: Comment) => {
     setEditingReplyId(reply.commentId);
     setEditingReplyContent(reply.content);
   };
 
-  // 답글 수정 취소
   const handleCancelReplyEdit = () => {
     setEditingReplyId(null);
     setEditingReplyContent("");
   };
 
-  // 답글 수정
   const handleUpdateReply = async (
     parentCommentId: number,
     replyId: number,
@@ -542,14 +513,12 @@ function PostDetail() {
       handleCancelReplyEdit();
     } catch (error) {
       console.error("답글 수정 실패:", error);
-
       alert("답글 수정에 실패했습니다.");
     } finally {
       setReplyEditLoading(false);
     }
   };
 
-  // 답글 삭제
   const handleDeleteReply = async (
     parentCommentId: number,
     replyId: number,
@@ -571,12 +540,10 @@ function PostDetail() {
       }));
     } catch (error) {
       console.error("답글 삭제 실패:", error);
-
       alert("답글 삭제에 실패했습니다.");
     }
   };
 
-  // 좋아요
   const handleLike = async () => {
     if (!post) {
       return;
@@ -599,7 +566,6 @@ function PostDetail() {
     }
   };
 
-  // 게시글 수정 시작
   const handleStartEdit = () => {
     if (!post) {
       return;
@@ -613,7 +579,6 @@ function PostDetail() {
     setIsEditing(true);
   };
 
-  // 게시글 수정 취소
   const handleCancelEdit = () => {
     setIsEditing(false);
 
@@ -623,7 +588,6 @@ function PostDetail() {
     setEditPrice("");
   };
 
-  // 게시글 수정
   const handleUpdatePost = async () => {
     if (!post) {
       return;
@@ -694,14 +658,12 @@ function PostDetail() {
       alert("게시글이 수정되었습니다.");
     } catch (error) {
       console.error("게시글 수정 실패:", error);
-
       alert("게시글 수정에 실패했습니다.");
     } finally {
       setEditLoading(false);
     }
   };
 
-  // 게시글 삭제
   const handleDelete = async () => {
     if (!post) {
       return;
@@ -721,15 +683,15 @@ function PostDetail() {
       navigate("/home");
     } catch (error) {
       console.error("게시글 삭제 실패:", error);
-
       alert("삭제에 실패했습니다.");
     }
   };
 
-  // 게시글 조회 전
   if (!post) {
     return <div>존재하지 않는 게시글입니다.</div>;
   }
+
+  const postImageUrl = getImageUrl(post.imageUrl);
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-10">
@@ -739,9 +701,8 @@ function PostDetail() {
         onClick={() => navigate("/home")}
         className="flex items-center gap-2 text-gray-600 mb-8"
       >
-        {" "}
         <span className="material-symbols-outlined">arrow_back</span>
-        뒤로가기{" "}
+        뒤로가기
       </button>
 
       {/* 게시글 */}
@@ -753,7 +714,7 @@ function PostDetail() {
             <div className="w-12 h-12 rounded-full overflow-hidden bg-white border border-blue-200 flex items-center justify-center">
               {post.profileImageUrl ? (
                 <img
-                  src={post.profileImageUrl}
+                  src={getImageUrl(post.profileImageUrl) ?? ""}
                   alt={`${post.authorNickname ?? "사용자"} 프로필`}
                   className="w-full h-full object-cover"
                 />
@@ -893,11 +854,22 @@ function PostDetail() {
               {getCategoryLabel(post.category)}
             </span>
 
-            {/* 이미지 영역 */}
-            <div className="w-full h-[360px] rounded-xl bg-gray-100 flex items-center justify-center mb-8">
-              <span className="material-symbols-outlined text-7xl text-gray-400">
-                image
-              </span>
+            {/* 게시글 이미지 */}
+            <div className="w-full h-[360px] rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center mb-8">
+              {postImageUrl ? (
+                <img
+                  src={postImageUrl}
+                  alt={post.title}
+                  className="w-full h-full object-contain"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <span className="material-symbols-outlined text-7xl text-gray-400">
+                  image
+                </span>
+              )}
             </div>
 
             {/* 게시글 내용 */}
@@ -910,7 +882,6 @@ function PostDetail() {
               {/* 조회수 */}
               <div className="flex items-center gap-2 text-gray-500">
                 <span className="material-symbols-outlined">visibility</span>
-
                 <span>조회수 {Math.max(post.viewCount ?? 0, 0)}</span>
               </div>
 
@@ -1007,7 +978,7 @@ function PostDetail() {
                         <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-blue-200 flex items-center justify-center">
                           {comment.profileImageUrl ? (
                             <img
-                              src={comment.profileImageUrl}
+                              src={getImageUrl(comment.profileImageUrl) ?? ""}
                               alt={`${comment.authorNickname} 프로필`}
                               className="w-full h-full object-cover"
                             />
@@ -1172,7 +1143,11 @@ function PostDetail() {
                                     <div className="w-8 h-8 rounded-full overflow-hidden bg-white border border-blue-200 flex items-center justify-center">
                                       {reply.profileImageUrl ? (
                                         <img
-                                          src={reply.profileImageUrl}
+                                          src={
+                                            getImageUrl(
+                                              reply.profileImageUrl,
+                                            ) ?? ""
+                                          }
                                           alt={`${reply.authorNickname} 프로필`}
                                           className="w-full h-full object-cover"
                                         />
