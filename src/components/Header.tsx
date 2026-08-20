@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "./Logo";
 
 function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const searchParams = new URLSearchParams(location.search);
+  const keywordFromUrl = searchParams.get("keyword") ?? "";
+
+  const [searchKeyword, setSearchKeyword] = useState(keywordFromUrl);
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const keyword = searchParams.get("keyword") ?? "";
+
+    setSearchKeyword(keyword);
+  }, [location.search]);
   const email = localStorage.getItem("email");
 
   const profileImageKey = email ? `profileImage_${email}` : "profileImage";
@@ -65,18 +76,19 @@ function Header() {
     }
   };
 
+  const handleSearch = () => {
+    const keyword = searchKeyword.trim();
+
+    if (!keyword) {
+      return;
+    }
+
+    navigate(`/search?keyword=${encodeURIComponent(keyword)}`);
+  };
+
   return (
     <header className="w-full bg-white">
-      <nav
-        className="
-    w-full
-    px-10
-    py-4
-    flex
-    items-center
-    justify-between
-  "
-      >
+      <nav className="w-full px-10 py-4 flex items-center gap-6">
         {/* 왼쪽 : 로고 */}
         <button
           type="button"
@@ -85,6 +97,64 @@ function Header() {
         >
           <Logo />
         </button>
+
+        {/* 검색창 */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSearch();
+          }}
+          className="flex-1 max-w-xl mx-auto"
+        >
+          <div className="relative">
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="게시글을 검색해보세요"
+              className="
+                w-full
+                h-10
+                pl-4
+                pr-12
+                rounded-full
+                border
+                border-blue-100
+                bg-blue-50
+                text-sm
+                text-gray-700
+                outline-none
+                focus:border-[#294C77]
+                focus:bg-white
+                transition
+              "
+            />
+
+            <button
+              type="submit"
+              aria-label="검색"
+              className="
+                absolute
+                right-1
+                top-1/2
+                -translate-y-1/2
+                w-8
+                h-8
+                flex
+                items-center
+                justify-center
+                rounded-full
+                text-[#294C77]
+                hover:bg-blue-100
+                transition
+              "
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                search
+              </span>
+            </button>
+          </div>
+        </form>
 
         {/* 오른쪽 : 버튼 영역 */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -109,7 +179,6 @@ function Header() {
             "
           >
             <span className="material-symbols-outlined text-sm">edit</span>
-
             <span className="hidden sm:inline">글쓰기</span>
           </button>
 
@@ -169,7 +238,6 @@ function Header() {
                 className="w-6 h-6 text-[#294C77]"
               >
                 <circle cx="12" cy="8" r="4" />
-
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

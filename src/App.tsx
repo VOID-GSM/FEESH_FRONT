@@ -7,7 +7,7 @@ import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import Notification from "./pages/Notification";
 import PostDetail from "./pages/PostDetail";
-
+import Search from "./pages/Search";
 function App() {
   return (
     <BrowserRouter>
@@ -33,6 +33,8 @@ function App() {
 
         {/* 알림 */}
         <Route path="/notification" element={<Notification />} />
+        {/*검색*/}
+        <Route path="/search" element={<Search />} />
       </Routes>
     </BrowserRouter>
   );

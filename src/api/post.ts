@@ -119,3 +119,22 @@ export const getPosts = (
     },
   });
 };
+
+// ======================
+// 게시글 검색
+// ======================
+export const searchPosts = (
+  keyword: string,
+  page = 0,
+  size = 10,
+  category: string | null = null,
+) => {
+  return api.get("/main/search", {
+    params: {
+      keyword,
+      page,
+      size,
+      category: category ?? undefined,
+    },
+  });
+};
