@@ -11,12 +11,7 @@ function Header() {
   const keywordFromUrl = searchParams.get("keyword") ?? "";
 
   const [searchKeyword, setSearchKeyword] = useState(keywordFromUrl);
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const keyword = searchParams.get("keyword") ?? "";
 
-    setSearchKeyword(keyword);
-  }, [location.search]);
   const email = localStorage.getItem("email");
 
   const profileImageKey = email ? `profileImage_${email}` : "profileImage";

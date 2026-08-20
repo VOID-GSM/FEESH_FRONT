@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Header from "../components/Header";
@@ -69,77 +69,76 @@ function Search() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   // 검색
-  const fetchSearchResults = async (
-    pageNumber = 0,
-    append = false,
-    category = selectedCategory,
-  ) => {
-    if (!keyword.trim()) {
-      setPosts([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
-
-      // 현재 선택한 카테고리의 백엔드 값
-      const categoryValue = CATEGORY_VALUES[category];
-
-      console.log("게시글 검색");
-      console.log("검색어:", keyword);
-      console.log("카테고리:", category);
-      console.log("백엔드 category:", categoryValue);
-      console.log("페이지:", pageNumber);
-
-      const response = await searchPosts(
-        keyword,
-        pageNumber,
-        10,
-        categoryValue,
-      );
-
-      console.log("검색 결과:", response.data);
-
-      if (append) {
-        setPosts((prev) => [...prev, ...response.data.posts]);
-      } else {
-        setPosts(response.data.posts);
-      }
-
-      setPage(pageNumber);
-      setTotalPages(response.data.totalPages);
-    } catch (error) {
-      console.error("검색 실패:", error);
-
-      if (!append) {
+  const fetchSearchResults = useCallback(
+    async (pageNumber = 0, append = false, category = selectedCategory) => {
+      if (!keyword.trim()) {
         setPosts([]);
-        setTotalPages(0);
-      }
-    } finally {
-      if (append) {
-        setLoadingMore(false);
-      } else {
         setLoading(false);
+        return;
       }
-    }
-  };
 
-  // 검색어가 변경되면 다시 검색
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        // 현재 선택한 카테고리의 백엔드 값
+        const categoryValue = CATEGORY_VALUES[category];
+
+        console.log("게시글 검색");
+        console.log("검색어:", keyword);
+        console.log("카테고리:", category);
+        console.log("백엔드 category:", categoryValue);
+        console.log("페이지:", pageNumber);
+
+        const response = await searchPosts(
+          keyword,
+          pageNumber,
+          10,
+          categoryValue,
+        );
+
+        console.log("검색 결과:", response.data);
+
+        if (append) {
+          setPosts((prev) => [...prev, ...response.data.posts]);
+        } else {
+          setPosts(response.data.posts);
+        }
+
+        setPage(pageNumber);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        console.error("검색 실패:", error);
+
+        if (!append) {
+          setPosts([]);
+          setTotalPages(0);
+        }
+      } finally {
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
+      }
+    },
+    [keyword, selectedCategory],
+  );
+
+  // 검색어 또는 카테고리가 변경되면 다시 검색
   useEffect(() => {
+    // 검색 결과 조회를 위한 effect이므로
+    // 이 호출에 대해서만 set-state-in-effect 규칙을 무시
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSearchResults(0, false);
-  }, [keyword]);
+  }, [fetchSearchResults]);
 
   // 카테고리 선택
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
-
-    // 선택한 카테고리로 첫 페이지부터 다시 검색
-    fetchSearchResults(0, false, category);
   };
 
   // 더 보기
