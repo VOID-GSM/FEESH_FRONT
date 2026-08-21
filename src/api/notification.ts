@@ -6,17 +6,20 @@ import axios from "./axios";
 export interface NotificationResponse {
   id: number;
 
-  // 알림 발생시킨 사용자
+  // 알림을 발생시킨 사용자
   senderId: number;
-
   senderNickname: string;
 
   // 관련 게시글
   postId: number;
 
-  // 댓글 알림일 경우만 존재
-  commentId?: number;
+  // 댓글 알림일 경우
+  commentId?: number | null;
 
+  // 답글일 경우 부모 댓글 ID
+  parentCommentId?: number | null;
+
+  // 알림 생성 시간
   createdAt: string;
 
   // 읽음 여부
@@ -35,7 +38,7 @@ export const getLikeNotifications = async () => {
 };
 
 /**
- * 댓글 알림 조회
+ * 댓글/답글 알림 조회
  *
  * GET /alarm/comment
  */

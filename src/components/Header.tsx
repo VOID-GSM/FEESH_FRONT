@@ -3,9 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "./Logo";
 
+import { getUnreadAlarmCount } from "../api/alarm";
+
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const searchParams = new URLSearchParams(location.search);
   const keywordFromUrl = searchParams.get("keyword") ?? "";
@@ -20,6 +24,22 @@ function Header() {
     return localStorage.getItem(profileImageKey);
   });
 
+  // 알림 개수 조회
+  const loadNotificationCount = async () => {
+    try {
+      const unreadCount = await getUnreadAlarmCount();
+
+      setNotificationCount(unreadCount);
+
+      console.log("읽지 않은 알림 개수:", unreadCount);
+    } catch (error) {
+      console.error("알림 개수 조회 실패:", error);
+
+      setNotificationCount(0);
+    }
+  };
+
+  // 프로필 이미지 조회
   const loadProfileImage = () => {
     const currentEmail = localStorage.getItem("email");
 
@@ -30,6 +50,13 @@ function Header() {
     setProfileImage(image);
   };
 
+  // 처음 Header가 표시될 때
+  useEffect(() => {
+    loadNotificationCount();
+    loadProfileImage();
+  }, []);
+
+  // 프로필 이미지 변경 감지
   useEffect(() => {
     const handleProfileImageUpdate = () => {
       loadProfileImage();
@@ -45,6 +72,28 @@ function Header() {
     };
   }, []);
 
+  // 페이지 이동 시 알림 개수 다시 조회
+  useEffect(() => {
+    loadNotificationCount();
+  }, [location.pathname]);
+
+  // 알림 개수 변경 이벤트 감지
+  useEffect(() => {
+    const handleNotificationUpdate = () => {
+      loadNotificationCount();
+    };
+
+    window.addEventListener("notificationUpdated", handleNotificationUpdate);
+
+    return () => {
+      window.removeEventListener(
+        "notificationUpdated",
+        handleNotificationUpdate,
+      );
+    };
+  }, []);
+
+  // 프로필 이미지 URL
   const getProfileImageUrl = () => {
     if (!profileImage) {
       return null;
@@ -59,6 +108,7 @@ function Header() {
 
   const profileImageUrl = getProfileImageUrl();
 
+  // 프로필 이미지 오류
   const handleProfileImageError = () => {
     setProfileImage(null);
 
@@ -71,6 +121,7 @@ function Header() {
     }
   };
 
+  // 검색
   const handleSearch = () => {
     const keyword = searchKeyword.trim();
 
@@ -84,7 +135,7 @@ function Header() {
   return (
     <header className="w-full bg-white">
       <nav className="w-full px-10 py-4 flex items-center gap-6">
-        {/* 왼쪽 : 로고 */}
+        {/* 로고 */}
         <button
           type="button"
           onClick={() => navigate("/home")}
@@ -151,7 +202,7 @@ function Header() {
           </div>
         </form>
 
-        {/* 오른쪽 : 버튼 영역 */}
+        {/* 오른쪽 버튼 */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {/* 글쓰기 */}
           <button
@@ -174,6 +225,7 @@ function Header() {
             "
           >
             <span className="material-symbols-outlined text-sm">edit</span>
+
             <span className="hidden sm:inline">글쓰기</span>
           </button>
 
@@ -182,6 +234,7 @@ function Header() {
             type="button"
             onClick={() => navigate("/notification")}
             className="
+              relative
               flex
               items-center
               justify-center
@@ -194,7 +247,37 @@ function Header() {
             "
             aria-label="알림"
           >
-            <span className="material-symbols-outlined">notifications</span>
+            <span className="material-symbols-outlined text-[24px]">
+              notifications
+            </span>
+
+            {/* 읽지 않은 알림 개수 */}
+            {notificationCount > 0 && (
+              <span
+                className="
+                  absolute
+                  top-0
+                  right-0
+                  min-w-[18px]
+                  h-[18px]
+                  px-1
+                  rounded-full
+                  bg-red-500
+                  text-white
+                  text-[10px]
+                  font-bold
+                  flex
+                  items-center
+                  justify-center
+                  leading-none
+                  border-2
+                  border-white
+                  z-10
+                "
+              >
+                {notificationCount > 99 ? "99+" : notificationCount}
+              </span>
+            )}
           </button>
 
           {/* 프로필 */}
@@ -233,9 +316,9 @@ function Header() {
                 className="w-6 h-6 text-[#294C77]"
               >
                 <circle cx="12" cy="8" r="4" />
+
                 <path
                   strokeLinecap="round"
-                  strokeLinejoin="round"
                   d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8"
                 />
               </svg>
