@@ -52,7 +52,9 @@ function Header() {
 
   // 처음 Header가 표시될 때
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotificationCount();
+
     loadProfileImage();
   }, []);
 
@@ -74,6 +76,7 @@ function Header() {
 
   // 페이지 이동 시 알림 개수 다시 조회
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotificationCount();
   }, [location.pathname]);
 
@@ -134,6 +137,7 @@ function Header() {
 
   return (
     <header className="w-full bg-white">
+      {" "}
       <nav className="w-full px-10 py-4 flex items-center gap-6">
         {/* 로고 */}
         <button
@@ -141,7 +145,8 @@ function Header() {
           onClick={() => navigate("/home")}
           className="shrink-0"
         >
-          <Logo />
+          {" "}
+          <Logo />{" "}
         </button>
 
         {/* 검색창 */}
@@ -159,41 +164,41 @@ function Header() {
               onChange={(e) => setSearchKeyword(e.target.value)}
               placeholder="게시글을 검색해보세요"
               className="
-                w-full
-                h-10
-                pl-4
-                pr-12
-                rounded-full
-                border
-                border-blue-100
-                bg-blue-50
-                text-sm
-                text-gray-700
-                outline-none
-                focus:border-[#294C77]
-                focus:bg-white
-                transition
-              "
+            w-full
+            h-10
+            pl-4
+            pr-12
+            rounded-full
+            border
+            border-blue-100
+            bg-blue-50
+            text-sm
+            text-gray-700
+            outline-none
+            focus:border-[#294C77]
+            focus:bg-white
+            transition
+          "
             />
 
             <button
               type="submit"
               aria-label="검색"
               className="
-                absolute
-                right-1
-                top-1/2
-                -translate-y-1/2
-                w-8
-                h-8
-                flex
-                items-center
-                justify-center
-                rounded-full
-                text-[#294C77]
-                hover:bg-blue-100
-                transition
-              "
+            absolute
+            right-1
+            top-1/2
+            -translate-y-1/2
+            w-8
+            h-8
+            flex
+            items-center
+            justify-center
+            rounded-full
+            text-[#294C77]
+            hover:bg-blue-100
+            transition
+          "
             >
               <span className="material-symbols-outlined text-[20px]">
                 search
@@ -209,20 +214,20 @@ function Header() {
             type="button"
             onClick={() => navigate("/create")}
             className="
-              flex
-              items-center
-              justify-center
-              gap-2
-              bg-blue-100
-              text-[#294C77]
-              px-3
-              sm:px-5
-              py-2
-              rounded-full
-              hover:bg-blue-200
-              transition
-              whitespace-nowrap
-            "
+          flex
+          items-center
+          justify-center
+          gap-2
+          bg-blue-100
+          text-[#294C77]
+          px-3
+          sm:px-5
+          py-2
+          rounded-full
+          hover:bg-blue-200
+          transition
+          whitespace-nowrap
+        "
           >
             <span className="material-symbols-outlined text-sm">edit</span>
 
@@ -234,17 +239,17 @@ function Header() {
             type="button"
             onClick={() => navigate("/notification")}
             className="
-              relative
-              flex
-              items-center
-              justify-center
-              w-10
-              h-10
-              shrink-0
-              text-[#294C77]
-              hover:text-blue-600
-              transition
-            "
+          relative
+          flex
+          items-center
+          justify-center
+          w-10
+          h-10
+          shrink-0
+          text-[#294C77]
+          hover:text-blue-600
+          transition
+        "
             aria-label="알림"
           >
             <span className="material-symbols-outlined text-[24px]">
@@ -255,25 +260,25 @@ function Header() {
             {notificationCount > 0 && (
               <span
                 className="
-                  absolute
-                  top-0
-                  right-0
-                  min-w-[18px]
-                  h-[18px]
-                  px-1
-                  rounded-full
-                  bg-red-500
-                  text-white
-                  text-[10px]
-                  font-bold
-                  flex
-                  items-center
-                  justify-center
-                  leading-none
-                  border-2
-                  border-white
-                  z-10
-                "
+              absolute
+              top-0
+              right-0
+              min-w-[18px]
+              h-[18px]
+              px-1
+              rounded-full
+              bg-red-500
+              text-white
+              text-[10px]
+              font-bold
+              flex
+              items-center
+              justify-center
+              leading-none
+              border-2
+              border-white
+              z-10
+            "
               >
                 {notificationCount > 99 ? "99+" : notificationCount}
               </span>
@@ -285,18 +290,18 @@ function Header() {
             type="button"
             onClick={() => navigate("/profile")}
             className="
-              flex
-              items-center
-              justify-center
-              w-10
-              h-10
-              shrink-0
-              rounded-full
-              overflow-hidden
-              border-2
-              border-blue-200
-              bg-white
-            "
+          flex
+          items-center
+          justify-center
+          w-10
+          h-10
+          shrink-0
+          rounded-full
+          overflow-hidden
+          border-2
+          border-blue-200
+          bg-white
+        "
             aria-label="프로필"
           >
             {profileImageUrl ? (
